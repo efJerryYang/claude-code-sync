@@ -1,0 +1,61 @@
+name: Sync NPM Package
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download npm package
+        run: |
+          mkdir -p tmp
+          cd tmp
+          npm pack @anthropic-ai/claude-code
+          PACKAGE_TGZ=$(ls *.tgz)
+          tar -xzf "$PACKAGE_TGZ" -C ../ # This will generate a `package` directory in the root
+          cd ..
+          rm -rf tmp
+
+      - name: Get package version
+        id: get_version
+        run: |
+          PACKAGE_VERSION=$(jq -r '.version' package/package.json)
+          echo "Package version is $PACKAGE_VERSION"
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Sync package to npm-package
+        run: |
+          mkdir -p npm-pkg
+          rsync -a --delete package/ npm-pkg/
+          rm -rf package
+
+      - name: Commit changes
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore(sync): bump npm package to v${{ steps.get_version.outputs.version }}"
+            TAG_NAME="v${{ steps.get_version.outputs.version }}"
+            git tag -d "$TAG_NAME" || true
+            git push origin --delete "$TAG_NAME" || true
+            git tag "$TAG_NAME"
+            git push origin HEAD --force --tags
+          else
+            echo "No changes detected."
+          fi
