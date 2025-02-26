@@ -1,12 +1,15 @@
 {
   "name": "@anthropic-ai/claude-code",
-  "version": "0.2.9",
+  "version": "0.2.14",
   "bin": {
     "claude": "cli.mjs"
   },
   "engines": {
     "node": ">=18.0.0"
   },
+  "os": [
+    "!win32"
+  ],
   "type": "module",
   "author": "Boris Cherny <boris@anthropic.com>",
   "license": "SEE LICENSE IN README.md",
