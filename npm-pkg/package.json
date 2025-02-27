@@ -1,15 +1,12 @@
 {
   "name": "@anthropic-ai/claude-code",
-  "version": "0.2.14",
+  "version": "0.2.18",
   "bin": {
     "claude": "cli.mjs"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "os": [
-    "!win32"
-  ],
   "type": "module",
   "author": "Boris Cherny <boris@anthropic.com>",
   "license": "SEE LICENSE IN README.md",
@@ -23,7 +20,8 @@
     "url": "https://github.com/anthropics/claude-code/issues"
   },
   "scripts": {
-    "prepare": "node -e \"if (!process.env.AUTHORIZED) { console.error('ERROR: Direct publishing is not allowed.\\nPlease use the publish-external.sh script to publish this package.'); process.exit(1); }\""
+    "prepare": "node -e \"if (!process.env.AUTHORIZED) { console.error('ERROR: Direct publishing is not allowed.\\nPlease use the publish-external.sh script to publish this package.'); process.exit(1); }\"",
+    "preinstall": "node scripts/preinstall.js"
   },
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.33.5",
