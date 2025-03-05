@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/claude-code",
-  "version": "0.2.29",
+  "version": "0.2.30",
   "bin": {
     "claude": "cli.mjs"
   },
@@ -12,10 +12,6 @@
   "license": "SEE LICENSE IN README.md",
   "description": "Use Claude, Anthropic's AI assistant, right from your terminal. Claude can understand your codebase, edit files, run terminal commands, and handle entire workflows for you.",
   "homepage": "https://github.com/anthropics/claude-code",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/anthropics/claude-cli-internal.git"
-  },
   "bugs": {
     "url": "https://github.com/anthropics/claude-code/issues"
   },
