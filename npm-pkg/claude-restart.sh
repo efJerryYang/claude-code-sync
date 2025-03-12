@@ -52,11 +52,12 @@ start_cli() {
     exit 1
   fi
   
-  # If this is a restart and no args are provided, add 'resume 0' to restore the last conversation
+  # If this is a restart triggered by exit code 42 and no args are provided, add 'resume 0' to restore the last conversation
   if [ "$is_restart" = "true" ] && [ ${#args[@]} -eq 0 ]; then
+    # Always add resume 0 when restarting due to exit code 42 and no other arguments exist
     args=("resume" "0")
   fi
-  
+
   # Run cli.mjs with the provided arguments
   "$CLI_PATH" "${args[@]}"
   
@@ -73,8 +74,19 @@ start_cli() {
       RESTART_COUNT=0
     ) &
     
-    # Restart with the same arguments
-    start_cli "true" "${args[@]}"
+    # When restarting due to exit code 42, filter args to keep only flags (starting with - or --)
+    # and add "resume 0" at the end
+    local restart_args=()
+    for arg in "${args[@]}"; do
+      if [[ "$arg" == -* ]]; then
+        restart_args+=("$arg")
+      fi
+    done
+    
+    # Add resume 0 at the end
+    restart_args+=("resume" "0")
+    
+    start_cli "true" "${restart_args[@]}"
   else
     # Any other exit code - exit with the same code
     exit $EXIT_CODE
