@@ -6,7 +6,6 @@
 # 1. Launches the CLI with the same arguments passed to this script
 # 2. Monitors the CLI process for a special exit code (42)
 # 3. If the special exit code is detected, it restarts the CLI with the same arguments
-# 4. Prevents infinite restart loops by limiting restart attempts
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -20,11 +19,6 @@ CLI_PATH="$SCRIPT_DIR/cli.js"
 # Define the signal we'll use to indicate a restart is needed
 # Using exit code 42 as our special signal
 RESTART_EXIT_CODE=42
-
-# Track restart attempts to prevent infinite restart loops
-RESTART_COUNT=0
-MAX_RESTARTS=5
-RESTART_RESET_TIME=60 # 1 minute in seconds
 
 # Check if cli.mjs exists
 if [ ! -f "$CLI_PATH" ]; then
@@ -45,13 +39,7 @@ start_cli() {
     # If second parameter is not "true", just remove first parameter
     args=("${args[@]:1}")
   fi
-  
-  # If we restart too many times in a short period, exit
-  if [ $RESTART_COUNT -ge $MAX_RESTARTS ]; then
-    echo "Too many restarts ($RESTART_COUNT) in a short period. Exiting."
-    exit 1
-  fi
-  
+      
   # If this is a restart triggered by exit code 42 and no args are provided, add 'resume 0' to restore the last conversation
   if [ "$is_restart" = "true" ] && [ ${#args[@]} -eq 0 ]; then
     # Always add resume 0 when restarting due to exit code 42 and no other arguments exist
@@ -66,13 +54,6 @@ start_cli() {
   
   # Check if we need to restart
   if [ $EXIT_CODE -eq $RESTART_EXIT_CODE ]; then
-    RESTART_COUNT=$((RESTART_COUNT + 1))
-    
-    # Reset restart counter after some time (in background)
-    (
-      sleep $RESTART_RESET_TIME
-      RESTART_COUNT=0
-    ) &
     
     # When restarting due to exit code 42, filter args to keep only flags (starting with - or --)
     # and add "resume 0" at the end
