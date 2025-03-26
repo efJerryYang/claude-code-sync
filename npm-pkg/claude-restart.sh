@@ -7,10 +7,14 @@
 # 2. Monitors the CLI process for a special exit code (42)
 # 3. If the special exit code is detected, it restarts the CLI with the same arguments
 
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Get the real path of this script by using Node.js to follow all symlinks
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+REAL_SCRIPT_PATH=$(/usr/bin/env node -e "console.log(require('fs').realpathSync('$SCRIPT_PATH'))")
 
-# Path to cli.mjs - look for it in the same directory as this script
+# Get the directory of the real script
+SCRIPT_DIR="$( dirname "$REAL_SCRIPT_PATH" )"
+
+# Path to cli.js - look for it in the same directory as this script
 CLI_PATH="$SCRIPT_DIR/cli.js"
 
 # DO NOT change the current working directory
