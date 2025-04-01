@@ -20,9 +20,11 @@ CLI_PATH="$SCRIPT_DIR/cli.js"
 # DO NOT change the current working directory
 # The CLI needs to maintain the original working directory it was launched from
 
-# Define the signal we'll use to indicate a restart is needed
-# Using exit code 42 as our special signal
+# Define the signals we'll use to indicate a restart is needed
+# Using exit code 42 as our special signal for command-based restart
 RESTART_EXIT_CODE=42
+# Using exit code 43 as our special signal for tool-based restart
+TOOL_RESTART_EXIT_CODE=43
 
 # Check if cli.mjs exists
 if [ ! -f "$CLI_PATH" ]; then
@@ -70,6 +72,21 @@ start_cli() {
     
     # Add resume 0 at the end
     restart_args+=("resume" "0")
+    
+    start_cli "true" "${restart_args[@]}"
+  elif [ $EXIT_CODE -eq $TOOL_RESTART_EXIT_CODE ]; then
+    
+    # When restarting due to exit code 43 (tool restart), filter args to keep only flags (starting with - or --)
+    # and use "Keep going.." prompt instead
+    local restart_args=()
+    for arg in "${args[@]}"; do
+      if [[ "$arg" == -* ]]; then
+        restart_args+=("$arg")
+      fi
+    done
+    
+    # Start with "Keep going.." prompt
+    restart_args+=("Keep going..")
     
     start_cli "true" "${restart_args[@]}"
   else
