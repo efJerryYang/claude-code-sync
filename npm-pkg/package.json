@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/claude-code",
-  "version": "0.2.81",
+  "version": "0.2.86",
   "bin": {
     "claude": "cli.js"
   },
@@ -18,6 +18,9 @@
   "scripts": {
     "prepare": "node -e \"if (!process.env.AUTHORIZED) { console.error('ERROR: Direct publishing is not allowed.\\nPlease use the publish-external.sh script to publish this package.'); process.exit(1); }\"",
     "preinstall": "node scripts/preinstall.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.9.1"
   },
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.33.5",
