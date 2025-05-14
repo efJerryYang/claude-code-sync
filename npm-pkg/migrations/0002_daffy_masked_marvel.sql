@@ -1,1 +1,0 @@
-ALTER TABLE `assistant_messages` ADD `model` text DEFAULT '' NOT NULL;
