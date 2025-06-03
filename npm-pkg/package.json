@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/claude-code",
-  "version": "1.0.6",
+  "version": "1.0.9",
   "bin": {
     "claude": "cli.js"
   },
@@ -22,7 +22,9 @@
   "dependencies": {},
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.33.5",
+    "@img/sharp-darwin-x64": "^0.33.5",
     "@img/sharp-linux-arm": "^0.33.5",
+    "@img/sharp-linux-arm64": "^0.33.5",
     "@img/sharp-linux-x64": "^0.33.5",
     "@img/sharp-win32-x64": "^0.33.5"
   }
