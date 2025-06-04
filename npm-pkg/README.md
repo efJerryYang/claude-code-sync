@@ -1,42 +1,34 @@
 # Claude Code
 
-![](https://img.shields.io/badge/Node.js-18%2B-brightgreen?style=flat-square)
+![](https://img.shields.io/badge/Node.js-18%2B-brightgreen?style=flat-square) [![npm]](https://www.npmjs.com/package/@anthropic-ai/claude-code)
 
-Claude Code is an agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster by executing routine tasks, explaining complex code, and handling git workflows - all through natural language commands.
+[npm]: https://img.shields.io/npm/v/@anthropic-ai/claude-code.svg?style=flat-square
 
-Some of its key capabilities include:
-
-- Edit files and fix bugs across your codebase
-- Answer questions about your code's architecture and logic
-- Execute and fix tests, lint, and other commands
-- Search through git history, resolve merge conflicts, and create commits and PRs
+Claude Code is an agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster by executing routine tasks, explaining complex code, and handling git workflows -- all through natural language commands. Use it in your terminal, IDE, or tag @claude on Github.
 
 **Learn more in the [official documentation](https://docs.anthropic.com/en/docs/claude-code/overview)**.
 
+<img src="https://github.com/anthropics/claude-code/blob/main/demo.gif?raw=1" />
+
 ## Get started
 
-<ol>
-  <li>
-    Run the following command in your terminal: <br />
-    <code>npm install -g @anthropic-ai/claude-code</code>
-  </li>
-  <li>
-    Navigate to your project directory and run <code>claude</code>
-  </li>
-  <li>
-    Complete the one-time OAuth process with your Claude Max or Anthropic Console account.
-  </li>
-</ol>
+1. Install Claude Code:
 
-### Reporting Bugs
+```sh
+npm install -g @anthropic-ai/claude-code
+```
 
-We welcome feedback. Use the `/bug` command to report issues directly within Claude Code, or file a [GitHub issue](https://github.com/anthropics/claude-code/issues).
+2. Navigate to your project directory and run `claude`.
 
-### Data collection, usage, and retention
+## Reporting Bugs
+
+We welcome feedback during this beta period. Use the `/bug` command to report issues directly within Claude Code, or file a [GitHub issue](https://github.com/anthropics/claude-code/issues).
+
+## Data collection, usage, and retention
 
 When you use Claude Code, we collect feedback, which includes usage data (such as code acceptance or rejections), associated conversation data, and user feedback submitted via the `/bug` command.
 
-#### How we use your data
+### How we use your data
 
 We may use feedback to improve our products and services, but we will not train generative models using your feedback from Claude Code. Given their potentially sensitive nature, we store user feedback transcripts for only 30 days.
 
