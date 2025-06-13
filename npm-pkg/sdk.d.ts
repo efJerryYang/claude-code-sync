@@ -44,7 +44,7 @@ export type Options = {
   permissionPromptToolName?: string
   continue?: boolean
   resume?: string
-  userSpecifiedModel?: string
+  model?: string
 }
 
 export type PermissionMode =
@@ -71,26 +71,24 @@ export type SDKResultMessage =
   | {
       type: 'result'
       subtype: 'success'
-      cost_usd: number
       duration_ms: number
       duration_api_ms: number
       is_error: boolean
       num_turns: number
       result: string
       session_id: string
-      total_cost: number
+      total_cost_usd: number
       usage: NonNullableUsage
     }
   | {
       type: 'result'
       subtype: 'error_max_turns' | 'error_during_execution'
-      cost_usd: number
       duration_ms: number
       duration_api_ms: number
       is_error: boolean
       num_turns: number
       session_id: string
-      total_cost: number
+      total_cost_usd: number
       usage: NonNullableUsage
     }
 

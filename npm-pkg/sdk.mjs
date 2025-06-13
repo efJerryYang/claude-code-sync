@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.21
+// Version: 1.0.22
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -19,7 +19,7 @@ async function* query({
     customSystemPrompt,
     cwd,
     disallowedTools = [],
-    executable = "node",
+    executable = isRunningWithBun() ? "bun" : "node",
     executableArgs = [],
     maxTurns,
     mcpServers,
@@ -28,7 +28,7 @@ async function* query({
     permissionPromptToolName,
     continue: continueConversation,
     resume,
-    userSpecifiedModel
+    model
   } = {}
 }) {
   process.env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
@@ -39,8 +39,8 @@ async function* query({
     args.push("--append-system-prompt", appendSystemPrompt);
   if (maxTurns)
     args.push("--max-turns", maxTurns.toString());
-  if (userSpecifiedModel)
-    args.push("--model", userSpecifiedModel);
+  if (model)
+    args.push("--model", model);
   if (permissionPromptToolName)
     args.push("--permission-prompt-tool", permissionPromptToolName);
   if (continueConversation)
@@ -131,6 +131,9 @@ function logDebug(message) {
   if (process.env.DEBUG) {
     console.debug(message);
   }
+}
+function isRunningWithBun() {
+  return process.versions.bun !== undefined || process.env.BUN_INSTALL !== undefined;
 }
 
 class AbortError extends Error {
