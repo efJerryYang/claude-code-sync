@@ -45,6 +45,7 @@ export type Options = {
   continue?: boolean
   resume?: string
   model?: string
+  fallbackModel?: string
 }
 
 export type PermissionMode =

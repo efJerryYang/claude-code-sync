@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.27
+// Version: 1.0.29
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -28,10 +28,13 @@ async function* query({
     permissionPromptToolName,
     continue: continueConversation,
     resume,
-    model
+    model,
+    fallbackModel
   } = {}
 }) {
-  process.env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
+  if (!process.env.CLAUDE_CODE_ENTRYPOINT) {
+    process.env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
+  }
   const args = ["--output-format", "stream-json", "--verbose"];
   if (customSystemPrompt)
     args.push("--system-prompt", customSystemPrompt);
@@ -58,6 +61,12 @@ async function* query({
   }
   if (permissionMode !== "default") {
     args.push("--permission-mode", permissionMode);
+  }
+  if (fallbackModel) {
+    if (model && fallbackModel === model) {
+      throw new Error("Fallback model cannot be the same as the main model. Please specify a different model for fallbackModel option.");
+    }
+    args.push("--fallback-model", fallbackModel);
   }
   if (!prompt.trim()) {
     throw new RangeError("Prompt is required");
