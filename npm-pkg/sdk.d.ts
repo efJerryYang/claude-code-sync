@@ -25,7 +25,13 @@ export type McpSSEServerConfig = {
   headers?: Record<string, string>
 }
 
-export type McpServerConfig = McpStdioServerConfig | McpSSEServerConfig
+export type McpHttpServerConfig = {
+  type: 'http'
+  url: string
+  headers?: Record<string, string>
+}
+
+export type McpServerConfig = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig
 
 export type Options = {
   abortController?: AbortController
