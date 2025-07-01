@@ -121,7 +121,7 @@ export type SDKMessage =
   | SDKSystemMessage
 
 type Props = {
-  prompt: string
+  prompt: string | AsyncIterable<SDKUserMessage>
   abortController?: AbortController
   options?: Options
 }

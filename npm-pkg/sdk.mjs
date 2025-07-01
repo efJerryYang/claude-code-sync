@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.35
+// Version: 1.0.38
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -68,10 +68,11 @@ async function* query({
     }
     args.push("--fallback-model", fallbackModel);
   }
-  if (!prompt.trim()) {
-    throw new RangeError("Prompt is required");
+  if (typeof prompt === "string") {
+    args.push("--print", prompt.trim());
+  } else {
+    args.push("--input-format", "stream-json");
   }
-  args.push("--print", prompt.trim());
   if (!existsSync(pathToClaudeCodeExecutable)) {
     throw new ReferenceError(`Claude Code executable not found at ${pathToClaudeCodeExecutable}. Is options.pathToClaudeCodeExecutable set?`);
   }
@@ -84,7 +85,11 @@ async function* query({
       ...process.env
     }
   });
-  child.stdin.end();
+  if (typeof prompt === "string") {
+    child.stdin.end();
+  } else {
+    streamToStdin(prompt, child.stdin, abortController);
+  }
   if (process.env.DEBUG) {
     child.stderr.on("data", (data) => {
       console.error("Claude Code stderr:", data.toString());
@@ -135,6 +140,15 @@ async function* query({
       delete process.env.CLAUDE_SDK_MCP_SERVERS;
     }
   }
+}
+async function streamToStdin(stream, stdin, abortController) {
+  for await (const message of stream) {
+    if (abortController.signal.aborted)
+      break;
+    stdin.write(JSON.stringify(message) + `
+`);
+  }
+  stdin.end();
 }
 function logDebug(message) {
   if (process.env.DEBUG) {
