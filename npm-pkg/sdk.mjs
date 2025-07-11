@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.44
+// Version: 1.0.48
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -8,9 +8,85 @@ import { join } from "path";
 import { fileURLToPath } from "url";
 import { createInterface } from "readline";
 import { existsSync } from "fs";
+
+// src/utils/stream.ts
+class Stream {
+  returned;
+  queue = [];
+  readResolve;
+  readReject;
+  isDone = false;
+  hasError;
+  started = false;
+  constructor(returned) {
+    this.returned = returned;
+  }
+  [Symbol.asyncIterator]() {
+    if (this.started) {
+      throw new Error("Stream can only be iterated once");
+    }
+    this.started = true;
+    return this;
+  }
+  next() {
+    if (this.queue.length > 0) {
+      return Promise.resolve({
+        done: false,
+        value: this.queue.shift()
+      });
+    }
+    if (this.isDone) {
+      return Promise.resolve({ done: true, value: undefined });
+    }
+    if (this.hasError) {
+      return Promise.reject(this.hasError);
+    }
+    return new Promise((resolve, reject) => {
+      this.readResolve = resolve;
+      this.readReject = reject;
+    });
+  }
+  enqueue(value) {
+    if (this.readResolve) {
+      const resolve = this.readResolve;
+      this.readResolve = undefined;
+      this.readReject = undefined;
+      resolve({ done: false, value });
+    } else {
+      this.queue.push(value);
+    }
+  }
+  done() {
+    this.isDone = true;
+    if (this.readResolve) {
+      const resolve = this.readResolve;
+      this.readResolve = undefined;
+      this.readReject = undefined;
+      resolve({ done: true, value: undefined });
+    }
+  }
+  error(error) {
+    this.hasError = error;
+    if (this.readReject) {
+      const reject = this.readReject;
+      this.readResolve = undefined;
+      this.readReject = undefined;
+      reject(error);
+    }
+  }
+  return() {
+    this.isDone = true;
+    if (this.returned) {
+      this.returned();
+    }
+    return Promise.resolve({ done: true, value: undefined });
+  }
+}
+
+// src/entrypoints/sdk.ts
 var __filename2 = fileURLToPath(import.meta.url);
 var __dirname2 = join(__filename2, "..");
-async function* query({
+function query({
   prompt,
   options: {
     abortController = new AbortController,
@@ -89,10 +165,12 @@ async function* query({
       ...process.env
     }
   });
+  let childStdin;
   if (typeof prompt === "string") {
     child.stdin.end();
   } else {
     streamToStdin(prompt, child.stdin, abortController);
+    childStdin = child.stdin;
   }
   if (process.env.DEBUG) {
     child.stderr.on("data", (data) => {
@@ -106,43 +184,124 @@ async function* query({
   };
   abortController.signal.addEventListener("abort", cleanup);
   process.on("exit", cleanup);
-  try {
-    let processError = null;
-    child.on("error", (error) => {
-      processError = new Error(`Failed to spawn Claude Code process: ${error.message}`);
-    });
-    const processExitPromise = new Promise((resolve, reject) => {
-      child.on("close", (code) => {
-        if (abortController.signal.aborted) {
-          reject(new AbortError("Claude Code process aborted by user"));
-        }
-        if (code !== 0) {
-          reject(new Error(`Claude Code process exited with code ${code}`));
-        } else {
-          resolve();
-        }
-      });
-    });
-    const rl = createInterface({ input: child.stdout });
-    try {
-      for await (const line of rl) {
-        if (processError) {
-          throw processError;
-        }
-        if (line.trim()) {
-          yield JSON.parse(line);
-        }
+  const processExitPromise = new Promise((resolve) => {
+    child.on("close", (code) => {
+      if (abortController.signal.aborted) {
+        query2.setError(new AbortError("Claude Code process aborted by user"));
+        return;
       }
-    } finally {
-      rl.close();
+      if (code !== 0) {
+        query2.setError(new Error(`Claude Code process exited with code ${code}`));
+      } else {
+        resolve();
+      }
+    });
+  });
+  const query2 = new Query(childStdin, child.stdout, processExitPromise);
+  child.on("error", (error) => {
+    if (abortController.signal.aborted) {
+      query2.setError(new AbortError("Claude Code process aborted by user"));
+    } else {
+      query2.setError(new Error(`Failed to spawn Claude Code process: ${error.message}`));
     }
-    await processExitPromise;
-  } finally {
+  });
+  processExitPromise.finally(() => {
     cleanup();
     abortController.signal.removeEventListener("abort", cleanup);
     if (process.env.CLAUDE_SDK_MCP_SERVERS) {
       delete process.env.CLAUDE_SDK_MCP_SERVERS;
     }
+  });
+  return query2;
+}
+
+class Query {
+  childStdin;
+  childStdout;
+  processExitPromise;
+  pendingControlResponses = new Map;
+  sdkMessages;
+  inputStream = new Stream;
+  constructor(childStdin, childStdout, processExitPromise) {
+    this.childStdin = childStdin;
+    this.childStdout = childStdout;
+    this.processExitPromise = processExitPromise;
+    this.readMessages();
+    this.sdkMessages = this.readSdkMessages();
+  }
+  setError(error) {
+    this.inputStream.error(error);
+  }
+  next(...[value]) {
+    return this.sdkMessages.next(...[value]);
+  }
+  return(value) {
+    return this.sdkMessages.return(value);
+  }
+  throw(e) {
+    return this.sdkMessages.throw(e);
+  }
+  [Symbol.asyncIterator]() {
+    return this.sdkMessages;
+  }
+  [Symbol.asyncDispose]() {
+    return this.sdkMessages[Symbol.asyncDispose]();
+  }
+  async readMessages() {
+    const rl = createInterface({ input: this.childStdout });
+    try {
+      for await (const line of rl) {
+        if (line.trim()) {
+          const message = JSON.parse(line);
+          if (message.type === "control_response") {
+            const handler = this.pendingControlResponses.get(message.response.request_id);
+            if (handler) {
+              handler(message.response);
+            }
+            continue;
+          }
+          this.inputStream.enqueue(message);
+        }
+      }
+      await this.processExitPromise;
+    } catch (error) {
+      this.inputStream.error(error);
+    } finally {
+      this.inputStream.done();
+      rl.close();
+    }
+  }
+  async* readSdkMessages() {
+    for await (const message of this.inputStream) {
+      yield message;
+    }
+  }
+  async interrupt() {
+    if (!this.childStdin) {
+      throw new Error("Interrupt requires --input-format stream-json");
+    }
+    await this.request({
+      subtype: "interrupt"
+    }, this.childStdin);
+  }
+  request(request, childStdin) {
+    const requestId = Math.random().toString(36).substring(2, 15);
+    const sdkRequest = {
+      request_id: requestId,
+      type: "control_request",
+      request
+    };
+    return new Promise((resolve, reject) => {
+      this.pendingControlResponses.set(requestId, (response) => {
+        if (response.subtype === "success") {
+          resolve(response);
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+      childStdin.write(JSON.stringify(sdkRequest) + `
+`);
+    });
   }
 }
 async function streamToStdin(stream, stdin, abortController) {
