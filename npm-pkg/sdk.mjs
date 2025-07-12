@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.48
+// Version: 1.0.51
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -188,7 +188,6 @@ function query({
     child.on("close", (code) => {
       if (abortController.signal.aborted) {
         query2.setError(new AbortError("Claude Code process aborted by user"));
-        return;
       }
       if (code !== 0) {
         query2.setError(new Error(`Claude Code process exited with code ${code}`));
