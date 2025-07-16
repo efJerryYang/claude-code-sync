@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/claude-code",
-  "version": "1.0.51",
+  "version": "1.0.53",
   "main": "sdk.mjs",
   "types": "sdk.d.ts",
   "bin": {
@@ -10,7 +10,7 @@
     "node": ">=18.0.0"
   },
   "type": "module",
-  "author": "Boris Cherny <boris@anthropic.com>",
+  "author": "Anthropic <support@anthropic.com>",
   "license": "SEE LICENSE IN README.md",
   "description": "Use Claude, Anthropic's AI assistant, right from your terminal. Claude can understand your codebase, edit files, run terminal commands, and handle entire workflows for you.",
   "homepage": "https://github.com/anthropics/claude-code",
