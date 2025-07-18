@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.53
+// Version: 1.0.55
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -106,7 +106,8 @@ function query({
     resume,
     model,
     fallbackModel,
-    strictMcpConfig
+    strictMcpConfig,
+    printStderr
   } = {}
 }) {
   if (!process.env.CLAUDE_CODE_ENTRYPOINT) {
@@ -172,7 +173,7 @@ function query({
     streamToStdin(prompt, child.stdin, abortController);
     childStdin = child.stdin;
   }
-  if (process.env.DEBUG) {
+  if (process.env.DEBUG || printStderr) {
     child.stderr.on("data", (data) => {
       console.error("Claude Code stderr:", data.toString());
     });
