@@ -31,7 +31,10 @@ export type McpHttpServerConfig = {
   headers?: Record<string, string>
 }
 
-export type McpServerConfig = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig
+export type McpServerConfig =
+  | McpStdioServerConfig
+  | McpSSEServerConfig
+  | McpHttpServerConfig
 
 export type Options = {
   abortController?: AbortController
@@ -52,6 +55,7 @@ export type Options = {
   resume?: string
   model?: string
   fallbackModel?: string
+  stderr?: (data: string) => void
 }
 
 export type PermissionMode =
@@ -126,6 +130,14 @@ type Props = {
   options?: Options
 }
 
+export interface Query extends AsyncGenerator<SDKMessage, void> {
+  /**
+   * Interrupt the query.
+   * Only supported when streaming input is used.
+   */
+  interrupt(): Promise<void>
+}
+
 /**
  * Query Claude Code
  *
@@ -141,10 +153,6 @@ type Props = {
  * }
  * ```
  */
-export function query({
-  prompt,
-  abortController,
-  options,
-}: Props): AsyncGenerator<SDKMessage>
+export function query({ prompt, abortController, options }: Props): Query
 
 export class AbortError extends Error {}

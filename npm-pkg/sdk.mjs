@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.55
+// Version: 1.0.56
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -84,8 +84,6 @@ class Stream {
 }
 
 // src/entrypoints/sdk.ts
-var __filename2 = fileURLToPath(import.meta.url);
-var __dirname2 = join(__filename2, "..");
 function query({
   prompt,
   options: {
@@ -99,7 +97,7 @@ function query({
     executableArgs = [],
     maxTurns,
     mcpServers,
-    pathToClaudeCodeExecutable = join(__dirname2, "cli.js"),
+    pathToClaudeCodeExecutable,
     permissionMode = "default",
     permissionPromptToolName,
     continue: continueConversation,
@@ -107,11 +105,16 @@ function query({
     model,
     fallbackModel,
     strictMcpConfig,
-    printStderr
+    stderr
   } = {}
 }) {
   if (!process.env.CLAUDE_CODE_ENTRYPOINT) {
     process.env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
+  }
+  if (pathToClaudeCodeExecutable === undefined) {
+    const filename = fileURLToPath(import.meta.url);
+    const dirname = join(filename, "..");
+    pathToClaudeCodeExecutable = join(dirname, "cli.js");
   }
   const args = ["--output-format", "stream-json", "--verbose"];
   if (customSystemPrompt)
@@ -173,9 +176,14 @@ function query({
     streamToStdin(prompt, child.stdin, abortController);
     childStdin = child.stdin;
   }
-  if (process.env.DEBUG || printStderr) {
+  if (process.env.DEBUG || stderr) {
     child.stderr.on("data", (data) => {
-      console.error("Claude Code stderr:", data.toString());
+      if (process.env.DEBUG) {
+        console.error("Claude Code stderr:", data.toString());
+      }
+      if (stderr) {
+        stderr(data.toString());
+      }
     });
   }
   const cleanup = () => {
