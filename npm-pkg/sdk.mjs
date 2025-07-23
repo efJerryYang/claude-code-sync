@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.56
+// Version: 1.0.58
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -83,11 +83,20 @@ class Stream {
   }
 }
 
+// src/utils/abortController.ts
+import { setMaxListeners } from "events";
+var DEFAULT_MAX_LISTENERS = 50;
+function createAbortController(maxListeners = DEFAULT_MAX_LISTENERS) {
+  const controller = new AbortController;
+  setMaxListeners(maxListeners, controller.signal);
+  return controller;
+}
+
 // src/entrypoints/sdk.ts
 function query({
   prompt,
   options: {
-    abortController = new AbortController,
+    abortController = createAbortController(),
     allowedTools = [],
     appendSystemPrompt,
     customSystemPrompt,
