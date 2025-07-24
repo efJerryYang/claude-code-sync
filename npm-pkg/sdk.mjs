@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.58
+// Version: 1.0.59
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -109,16 +109,21 @@ function query({
     pathToClaudeCodeExecutable,
     permissionMode = "default",
     permissionPromptToolName,
+    canUseTool,
     continue: continueConversation,
     resume,
     model,
     fallbackModel,
     strictMcpConfig,
-    stderr
+    stderr,
+    env
   } = {}
 }) {
-  if (!process.env.CLAUDE_CODE_ENTRYPOINT) {
-    process.env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
+  if (!env) {
+    env = { ...process.env };
+  }
+  if (!env.CLAUDE_CODE_ENTRYPOINT) {
+    env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
   }
   if (pathToClaudeCodeExecutable === undefined) {
     const filename = fileURLToPath(import.meta.url);
@@ -134,8 +139,18 @@ function query({
     args.push("--max-turns", maxTurns.toString());
   if (model)
     args.push("--model", model);
-  if (permissionPromptToolName)
+  if (canUseTool) {
+    if (typeof prompt === "string") {
+      throw new Error("canUseTool callback requires --input-format stream-json. Please set prompt as an AsyncIterable.");
+    }
+    if (permissionPromptToolName) {
+      throw new Error("canUseTool callback cannot be used with permissionPromptToolName. Please use one or the other.");
+    }
+    permissionPromptToolName = "stdio";
+  }
+  if (permissionPromptToolName) {
     args.push("--permission-prompt-tool", permissionPromptToolName);
+  }
   if (continueConversation)
     args.push("--continue");
   if (resume)
@@ -174,9 +189,7 @@ function query({
     cwd,
     stdio: ["pipe", "pipe", "pipe"],
     signal: abortController.signal,
-    env: {
-      ...process.env
-    }
+    env
   });
   let childStdin;
   if (typeof prompt === "string") {
@@ -185,9 +198,9 @@ function query({
     streamToStdin(prompt, child.stdin, abortController);
     childStdin = child.stdin;
   }
-  if (process.env.DEBUG || stderr) {
+  if (env.DEBUG || stderr) {
     child.stderr.on("data", (data) => {
-      if (process.env.DEBUG) {
+      if (env.DEBUG) {
         console.error("Claude Code stderr:", data.toString());
       }
       if (stderr) {
@@ -214,7 +227,7 @@ function query({
       }
     });
   });
-  const query2 = new Query(childStdin, child.stdout, processExitPromise);
+  const query2 = new Query(childStdin, child.stdout, processExitPromise, canUseTool);
   child.on("error", (error) => {
     if (abortController.signal.aborted) {
       query2.setError(new AbortError("Claude Code process aborted by user"));
@@ -225,9 +238,6 @@ function query({
   processExitPromise.finally(() => {
     cleanup();
     abortController.signal.removeEventListener("abort", cleanup);
-    if (process.env.CLAUDE_SDK_MCP_SERVERS) {
-      delete process.env.CLAUDE_SDK_MCP_SERVERS;
-    }
   });
   return query2;
 }
@@ -236,13 +246,15 @@ class Query {
   childStdin;
   childStdout;
   processExitPromise;
+  canUseTool;
   pendingControlResponses = new Map;
   sdkMessages;
   inputStream = new Stream;
-  constructor(childStdin, childStdout, processExitPromise) {
+  constructor(childStdin, childStdout, processExitPromise, canUseTool) {
     this.childStdin = childStdin;
     this.childStdout = childStdout;
     this.processExitPromise = processExitPromise;
+    this.canUseTool = canUseTool;
     this.readMessages();
     this.sdkMessages = this.readSdkMessages();
   }
@@ -276,6 +288,9 @@ class Query {
               handler(message.response);
             }
             continue;
+          } else if (message.type === "control_request") {
+            this.handleControlRequest(message);
+            continue;
           }
           this.inputStream.enqueue(message);
         }
@@ -287,6 +302,41 @@ class Query {
       this.inputStream.done();
       rl.close();
     }
+  }
+  async handleControlRequest(request) {
+    try {
+      const response = await this.processControlRequest(request);
+      const controlResponse = {
+        type: "control_response",
+        response: {
+          subtype: "success",
+          request_id: request.request_id,
+          response
+        }
+      };
+      this.childStdin?.write(JSON.stringify(controlResponse) + `
+`);
+    } catch (error) {
+      const controlErrorResponse = {
+        type: "control_response",
+        response: {
+          subtype: "error",
+          request_id: request.request_id,
+          error: error.message || String(error)
+        }
+      };
+      this.childStdin?.write(JSON.stringify(controlErrorResponse) + `
+`);
+    }
+  }
+  async processControlRequest(request) {
+    if (request.request.subtype === "can_use_tool") {
+      if (!this.canUseTool) {
+        throw new Error("canUseTool callback is not provided.");
+      }
+      return this.canUseTool(request.request.tool_name, request.request.input);
+    }
+    throw new Error("Unsupported control request subtype: " + request.request.subtype);
   }
   async* readSdkMessages() {
     for await (const message of this.inputStream) {
