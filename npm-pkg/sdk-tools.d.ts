@@ -39,6 +39,10 @@ export interface AgentInput {
    * The task for the agent to perform
    */
   prompt: string;
+  /**
+   * The type of specialized agent to use for this task
+   */
+  subagent_type: string;
 }
 export interface BashInput {
   /**
