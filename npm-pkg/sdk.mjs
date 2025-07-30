@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.62
+// Version: 1.0.63
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -177,7 +177,8 @@ function query({
     args.push("--fallback-model", fallbackModel);
   }
   if (typeof prompt === "string") {
-    args.push("--print", prompt.trim());
+    args.push("--print");
+    args.push("--", prompt.trim());
   } else {
     args.push("--input-format", "stream-json");
   }
@@ -250,6 +251,7 @@ class Query {
   pendingControlResponses = new Map;
   sdkMessages;
   inputStream = new Stream;
+  intialization;
   constructor(childStdin, childStdout, processExitPromise, canUseTool) {
     this.childStdin = childStdin;
     this.childStdout = childStdout;
@@ -257,6 +259,9 @@ class Query {
     this.canUseTool = canUseTool;
     this.readMessages();
     this.sdkMessages = this.readSdkMessages();
+    if (this.childStdin) {
+      this.intialization = this.initialize();
+    }
   }
   setError(error) {
     this.inputStream.error(error);
@@ -343,6 +348,16 @@ class Query {
       yield message;
     }
   }
+  async initialize() {
+    if (!this.childStdin) {
+      throw new Error("Cannot initialize without child stdin");
+    }
+    const initRequest = {
+      subtype: "initialize"
+    };
+    const response = await this.request(initRequest, this.childStdin);
+    return response.response;
+  }
   async interrupt() {
     if (!this.childStdin) {
       throw new Error("Interrupt requires --input-format stream-json");
@@ -369,6 +384,12 @@ class Query {
       childStdin.write(JSON.stringify(sdkRequest) + `
 `);
     });
+  }
+  async supportedCommands() {
+    if (!this.intialization) {
+      throw new Error("Interrupt requires --input-format stream-json");
+    }
+    return (await this.intialization).commands;
   }
 }
 async function streamToStdin(stream, stdin, abortController) {
