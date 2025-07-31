@@ -116,6 +116,7 @@ export type SDKSystemMessage = {
   }[]
   model: string
   permissionMode: PermissionMode
+  slash_commands: string[]
 }
 
 export type SDKMessage =
