@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.67
+// Version: 1.0.68
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -186,9 +186,10 @@ function query({
     throw new ReferenceError(`Claude Code executable not found at ${pathToClaudeCodeExecutable}. Is options.pathToClaudeCodeExecutable set?`);
   }
   logDebug(`Spawning Claude Code process: ${executable} ${[...executableArgs, pathToClaudeCodeExecutable, ...args].join(" ")}`);
+  const stderrMode = env.DEBUG || stderr ? "pipe" : "ignore";
   const child = spawn(executable, [...executableArgs, pathToClaudeCodeExecutable, ...args], {
     cwd,
-    stdio: ["pipe", "pipe", "pipe"],
+    stdio: ["pipe", "pipe", stderrMode],
     signal: abortController.signal,
     env
   });

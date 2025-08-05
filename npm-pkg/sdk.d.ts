@@ -36,6 +36,21 @@ export type McpServerConfig =
   | McpSSEServerConfig
   | McpHttpServerConfig
 
+export type PermissionResult =
+  | {
+      behavior: 'allow'
+      updatedInput: Record<string, unknown>
+    }
+  | {
+      behavior: 'deny'
+      message: string
+    }
+
+export type CanUseTool = (
+  toolName: string,
+  input: Record<string, unknown>,
+) => Promise<PermissionResult>
+
 export type Options = {
   abortController?: AbortController
   allowedTools?: string[]
@@ -56,6 +71,7 @@ export type Options = {
   model?: string
   fallbackModel?: string
   stderr?: (data: string) => void
+  canUseTool?: CanUseTool
 }
 
 export type PermissionMode =

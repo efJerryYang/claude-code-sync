@@ -24,7 +24,6 @@ export type ToolInputSchemas =
   | LsInput
   | McpInput
   | NotebookEditInput
-  | NotebookReadInput
   | ReadMcpResourceInput
   | TodoWriteInput
   | WebFetchInput
@@ -278,16 +277,6 @@ export interface NotebookEditInput {
    * The type of edit to make (replace, insert, delete). Defaults to replace.
    */
   edit_mode?: "replace" | "insert" | "delete";
-}
-export interface NotebookReadInput {
-  /**
-   * The absolute path to the Jupyter notebook file to read (must be absolute, not relative)
-   */
-  notebook_path: string;
-  /**
-   * The ID of a specific cell to read. If not provided, all cells will be read.
-   */
-  cell_id?: string;
 }
 export interface ReadMcpResourceInput {
   /**
