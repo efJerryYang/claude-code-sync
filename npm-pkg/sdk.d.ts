@@ -143,7 +143,6 @@ export type SDKMessage =
 
 type Props = {
   prompt: string | AsyncIterable<SDKUserMessage>
-  abortController?: AbortController
   options?: Options
 }
 
@@ -170,6 +169,6 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
  * }
  * ```
  */
-export function query({ prompt, abortController, options }: Props): Query
+export function query({ prompt, options }: Props): Query
 
 export class AbortError extends Error {}

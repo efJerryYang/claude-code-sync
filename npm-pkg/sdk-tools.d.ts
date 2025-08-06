@@ -80,7 +80,11 @@ export interface BashOutputInput {
   /**
    * The ID of the background shell to retrieve output from
    */
-  shell_id: string;
+  bash_id: string;
+  /**
+   * Optional regular expression to filter the output lines. Only lines matching this regex will be included in the result. Any lines that do not match will no longer be available to read.
+   */
+  filter?: string;
 }
 export interface ExitPlanModeInput {
   /**
@@ -295,7 +299,6 @@ export interface TodoWriteInput {
   todos: {
     content: string;
     status: "pending" | "in_progress" | "completed";
-    priority: "high" | "medium" | "low";
     id: string;
   }[];
 }
