@@ -1,6 +1,6 @@
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.71
+// Version: 1.0.72
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
