@@ -1,6 +1,11 @@
+#!/usr/bin/env node
+
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.72
+// Version: 1.0.73
+
+// Want to see the unminified source? We're hiring!
+// https://job-boards.greenhouse.io/anthropic/jobs/4816199008
 
 // src/entrypoints/sdk.ts
 import { spawn } from "child_process";
@@ -415,5 +420,6 @@ class AbortError extends Error {
 }
 export {
   query,
+  Query,
   AbortError
 };
