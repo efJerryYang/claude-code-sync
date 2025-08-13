@@ -94,6 +94,12 @@ export type SDKAssistantMessage = {
   session_id: string
 }
 
+export type SDKPermissionDenial = {
+  tool_name: string
+  tool_use_id: string
+  tool_input: Record<string, unknown>
+}
+
 export type SDKResultMessage =
   | {
       type: 'result'
@@ -106,6 +112,7 @@ export type SDKResultMessage =
       session_id: string
       total_cost_usd: number
       usage: NonNullableUsage
+      permission_denials: SDKPermissionDenial[]
     }
   | {
       type: 'result'
@@ -117,6 +124,7 @@ export type SDKResultMessage =
       session_id: string
       total_cost_usd: number
       usage: NonNullableUsage
+      permission_denials: SDKPermissionDenial[]
     }
 
 export type SDKSystemMessage = {
