@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.81
+// Version: 1.0.83
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -258,6 +258,7 @@ class Query {
   sdkMessages;
   inputStream = new Stream;
   intialization;
+  cancelControllers = new Map;
   constructor(childStdin, childStdout, processExitPromise, canUseTool) {
     this.childStdin = childStdin;
     this.childStdout = childStdout;
@@ -302,6 +303,9 @@ class Query {
           } else if (message.type === "control_request") {
             this.handleControlRequest(message);
             continue;
+          } else if (message.type === "control_cancel_request") {
+            this.handleControlCancelRequest(message);
+            continue;
           }
           this.inputStream.enqueue(message);
         }
@@ -315,8 +319,10 @@ class Query {
     }
   }
   async handleControlRequest(request) {
+    const controller = new AbortController;
+    this.cancelControllers.set(request.request_id, controller);
     try {
-      const response = await this.processControlRequest(request);
+      const response = await this.processControlRequest(request, controller.signal);
       const controlResponse = {
         type: "control_response",
         response: {
@@ -338,14 +344,25 @@ class Query {
       };
       this.childStdin?.write(JSON.stringify(controlErrorResponse) + `
 `);
+    } finally {
+      this.cancelControllers.delete(request.request_id);
     }
   }
-  async processControlRequest(request) {
+  handleControlCancelRequest(request) {
+    const controller = this.cancelControllers.get(request.request_id);
+    if (controller) {
+      controller.abort();
+      this.cancelControllers.delete(request.request_id);
+    }
+  }
+  async processControlRequest(request, signal) {
     if (request.request.subtype === "can_use_tool") {
       if (!this.canUseTool) {
         throw new Error("canUseTool callback is not provided.");
       }
-      return this.canUseTool(request.request.tool_name, request.request.input);
+      return this.canUseTool(request.request.tool_name, request.request.input, {
+        signal
+      });
     }
     throw new Error("Unsupported control request subtype: " + request.request.subtype);
   }

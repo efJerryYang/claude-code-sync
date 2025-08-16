@@ -49,6 +49,10 @@ export type PermissionResult =
 export type CanUseTool = (
   toolName: string,
   input: Record<string, unknown>,
+  options: {
+    // Signaled if the operation should be aborted
+    signal: AbortSignal
+  },
 ) => Promise<PermissionResult>
 
 export type Options = {
