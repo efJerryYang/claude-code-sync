@@ -1,171 +1,126 @@
-import type {
-  Message as APIAssistantMessage,
-  MessageParam as APIUserMessage,
-  Usage,
-} from '@anthropic-ai/sdk/resources/index.mjs'
-
+import type { Message as APIAssistantMessage, MessageParam as APIUserMessage, Usage } from '@anthropic-ai/sdk/resources/index.mjs';
 export type NonNullableUsage = {
-  [K in keyof Usage]: NonNullable<Usage[K]>
-}
-
-export type ApiKeySource = 'user' | 'project' | 'org' | 'temporary'
-
-export type ConfigScope = 'local' | 'user' | 'project'
-
+    [K in keyof Usage]: NonNullable<Usage[K]>;
+};
+export type ApiKeySource = 'user' | 'project' | 'org' | 'temporary';
+export type ConfigScope = 'local' | 'user' | 'project';
 export type McpStdioServerConfig = {
-  type?: 'stdio' // Optional for backwards compatibility
-  command: string
-  args?: string[]
-  env?: Record<string, string>
-}
-
+    type?: 'stdio';
+    command: string;
+    args?: string[];
+    env?: Record<string, string>;
+};
 export type McpSSEServerConfig = {
-  type: 'sse'
-  url: string
-  headers?: Record<string, string>
-}
-
+    type: 'sse';
+    url: string;
+    headers?: Record<string, string>;
+};
 export type McpHttpServerConfig = {
-  type: 'http'
-  url: string
-  headers?: Record<string, string>
-}
-
-export type McpServerConfig =
-  | McpStdioServerConfig
-  | McpSSEServerConfig
-  | McpHttpServerConfig
-
-export type PermissionResult =
-  | {
-      behavior: 'allow'
-      updatedInput: Record<string, unknown>
-    }
-  | {
-      behavior: 'deny'
-      message: string
-    }
-
-export type CanUseTool = (
-  toolName: string,
-  input: Record<string, unknown>,
-  options: {
-    // Signaled if the operation should be aborted
-    signal: AbortSignal
-  },
-) => Promise<PermissionResult>
-
+    type: 'http';
+    url: string;
+    headers?: Record<string, string>;
+};
+export type McpServerConfig = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig;
+export type PermissionResult = {
+    behavior: 'allow';
+    updatedInput: Record<string, unknown>;
+} | {
+    behavior: 'deny';
+    message: string;
+};
+export type CanUseTool = (toolName: string, input: Record<string, unknown>, options: {
+    signal: AbortSignal;
+}) => Promise<PermissionResult>;
 export type Options = {
-  abortController?: AbortController
-  allowedTools?: string[]
-  appendSystemPrompt?: string
-  customSystemPrompt?: string
-  cwd?: string
-  disallowedTools?: string[]
-  executable?: 'bun' | 'deno' | 'node'
-  executableArgs?: string[]
-  maxThinkingTokens?: number
-  maxTurns?: number
-  mcpServers?: Record<string, McpServerConfig>
-  pathToClaudeCodeExecutable?: string
-  permissionMode?: PermissionMode
-  permissionPromptToolName?: string
-  continue?: boolean
-  resume?: string
-  model?: string
-  fallbackModel?: string
-  stderr?: (data: string) => void
-  canUseTool?: CanUseTool
-}
-
-export type PermissionMode =
-  | 'default'
-  | 'acceptEdits'
-  | 'bypassPermissions'
-  | 'plan'
-
+    abortController?: AbortController;
+    additionalDirectories?: string[];
+    allowedTools?: string[];
+    appendSystemPrompt?: string;
+    canUseTool?: CanUseTool;
+    continue?: boolean;
+    customSystemPrompt?: string;
+    cwd?: string;
+    disallowedTools?: string[];
+    env?: Dict<string>;
+    executable?: 'bun' | 'deno' | 'node';
+    executableArgs?: string[];
+    fallbackModel?: string;
+    maxThinkingTokens?: number;
+    maxTurns?: number;
+    mcpServers?: Record<string, McpServerConfig>;
+    model?: string;
+    pathToClaudeCodeExecutable?: string;
+    permissionMode?: PermissionMode;
+    permissionPromptToolName?: string;
+    resume?: string;
+    stderr?: (data: string) => void;
+    strictMcpConfig?: boolean;
+};
+export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
 export type SDKUserMessage = {
-  type: 'user'
-  message: APIUserMessage
-  parent_tool_use_id: string | null
-  session_id: string
-}
-
+    type: 'user';
+    message: APIUserMessage;
+    parent_tool_use_id: string | null;
+    session_id: string;
+};
 export type SDKAssistantMessage = {
-  type: 'assistant'
-  message: APIAssistantMessage
-  parent_tool_use_id: string | null
-  session_id: string
-}
-
+    type: 'assistant';
+    message: APIAssistantMessage;
+    parent_tool_use_id: string | null;
+    session_id: string;
+};
 export type SDKPermissionDenial = {
-  tool_name: string
-  tool_use_id: string
-  tool_input: Record<string, unknown>
-}
-
-export type SDKResultMessage =
-  | {
-      type: 'result'
-      subtype: 'success'
-      duration_ms: number
-      duration_api_ms: number
-      is_error: boolean
-      num_turns: number
-      result: string
-      session_id: string
-      total_cost_usd: number
-      usage: NonNullableUsage
-      permission_denials: SDKPermissionDenial[]
-    }
-  | {
-      type: 'result'
-      subtype: 'error_max_turns' | 'error_during_execution'
-      duration_ms: number
-      duration_api_ms: number
-      is_error: boolean
-      num_turns: number
-      session_id: string
-      total_cost_usd: number
-      usage: NonNullableUsage
-      permission_denials: SDKPermissionDenial[]
-    }
-
+    tool_name: string;
+    tool_use_id: string;
+    tool_input: Record<string, unknown>;
+};
+export type SDKResultMessage = {
+    type: 'result';
+    subtype: 'success';
+    duration_ms: number;
+    duration_api_ms: number;
+    is_error: boolean;
+    num_turns: number;
+    result: string;
+    session_id: string;
+    total_cost_usd: number;
+    usage: NonNullableUsage;
+    permission_denials: SDKPermissionDenial[];
+} | {
+    type: 'result';
+    subtype: 'error_max_turns' | 'error_during_execution';
+    duration_ms: number;
+    duration_api_ms: number;
+    is_error: boolean;
+    num_turns: number;
+    session_id: string;
+    total_cost_usd: number;
+    usage: NonNullableUsage;
+    permission_denials: SDKPermissionDenial[];
+};
 export type SDKSystemMessage = {
-  type: 'system'
-  subtype: 'init'
-  apiKeySource: ApiKeySource
-  cwd: string
-  session_id: string
-  tools: string[]
-  mcp_servers: {
-    name: string
-    status: string
-  }[]
-  model: string
-  permissionMode: PermissionMode
-  slash_commands: string[]
-}
-
-export type SDKMessage =
-  | SDKAssistantMessage
-  | SDKUserMessage
-  | SDKResultMessage
-  | SDKSystemMessage
-
-type Props = {
-  prompt: string | AsyncIterable<SDKUserMessage>
-  options?: Options
-}
-
+    type: 'system';
+    subtype: 'init';
+    apiKeySource: ApiKeySource;
+    cwd: string;
+    session_id: string;
+    tools: string[];
+    mcp_servers: {
+        name: string;
+        status: string;
+    }[];
+    model: string;
+    permissionMode: PermissionMode;
+    slash_commands: string[];
+};
+export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKResultMessage | SDKSystemMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
-  /**
-   * Interrupt the query.
-   * Only supported when streaming input is used.
-   */
-  interrupt(): Promise<void>
+    /**
+     * Interrupt the query.
+     * Only supported when streaming input is used.
+     */
+    interrupt(): Promise<void>;
 }
-
 /**
  * Query Claude Code
  *
@@ -181,6 +136,9 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
  * }
  * ```
  */
-export function query({ prompt, options }: Props): Query
-
-export class AbortError extends Error {}
+export declare function query({ prompt, options, }: {
+    prompt: string | AsyncIterable<SDKUserMessage>;
+    options?: Options;
+}): Query;
+export declare class AbortError extends Error {
+}

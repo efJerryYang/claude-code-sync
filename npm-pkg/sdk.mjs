@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.83
+// Version: 1.0.84
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -97,6 +97,10 @@ function createAbortController(maxListeners = DEFAULT_MAX_LISTENERS) {
   return controller;
 }
 
+// src/entrypoints/sdkTypes.ts
+class AbortError extends Error {
+}
+
 // src/entrypoints/sdk.ts
 function query({
   prompt,
@@ -121,7 +125,8 @@ function query({
     fallbackModel,
     strictMcpConfig,
     stderr,
-    env
+    env,
+    additionalDirectories = []
   } = {}
 }) {
   if (!env) {
@@ -186,6 +191,9 @@ function query({
     args.push("--", prompt.trim());
   } else {
     args.push("--input-format", "stream-json");
+  }
+  for (const dir of additionalDirectories) {
+    args.push("--add-dir", dir);
   }
   if (!existsSync(pathToClaudeCodeExecutable)) {
     throw new ReferenceError(`Claude Code executable not found at ${pathToClaudeCodeExecutable}. Is options.pathToClaudeCodeExecutable set?`);
@@ -432,11 +440,7 @@ function logDebug(message) {
 function isRunningWithBun() {
   return process.versions.bun !== undefined || process.env.BUN_INSTALL !== undefined;
 }
-
-class AbortError extends Error {
-}
 export {
   query,
-  Query,
-  AbortError
+  Query
 };
