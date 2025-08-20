@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.84
+// Version: 1.0.85
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -106,27 +106,28 @@ function query({
   prompt,
   options: {
     abortController = createAbortController(),
+    additionalDirectories = [],
     allowedTools = [],
     appendSystemPrompt,
+    canUseTool,
+    continue: continueConversation,
     customSystemPrompt,
     cwd,
     disallowedTools = [],
+    env,
     executable = isRunningWithBun() ? "bun" : "node",
     executableArgs = [],
+    fallbackModel,
+    hooks,
     maxTurns,
     mcpServers,
+    model,
     pathToClaudeCodeExecutable,
     permissionMode = "default",
     permissionPromptToolName,
-    canUseTool,
-    continue: continueConversation,
     resume,
-    model,
-    fallbackModel,
-    strictMcpConfig,
     stderr,
-    env,
-    additionalDirectories = []
+    strictMcpConfig
   } = {}
 }) {
   if (!env) {
@@ -242,7 +243,7 @@ function query({
       }
     });
   });
-  const query2 = new Query(childStdin, child.stdout, processExitPromise, canUseTool);
+  const query2 = new Query(childStdin, child.stdout, processExitPromise, canUseTool, hooks);
   child.on("error", (error) => {
     if (abortController.signal.aborted) {
       query2.setError(new AbortError("Claude Code process aborted by user"));
@@ -262,16 +263,20 @@ class Query {
   childStdout;
   processExitPromise;
   canUseTool;
+  hooks;
   pendingControlResponses = new Map;
   sdkMessages;
   inputStream = new Stream;
   intialization;
   cancelControllers = new Map;
-  constructor(childStdin, childStdout, processExitPromise, canUseTool) {
+  hookCallbacks = new Map;
+  nextCallbackId = 0;
+  constructor(childStdin, childStdout, processExitPromise, canUseTool, hooks) {
     this.childStdin = childStdin;
     this.childStdout = childStdout;
     this.processExitPromise = processExitPromise;
     this.canUseTool = canUseTool;
+    this.hooks = hooks;
     this.readMessages();
     this.sdkMessages = this.readSdkMessages();
     if (this.childStdin) {
@@ -371,6 +376,9 @@ class Query {
       return this.canUseTool(request.request.tool_name, request.request.input, {
         signal
       });
+    } else if (request.request.subtype === "hook_callback") {
+      const result = await this.handleHookCallbacks(request.request.callback_id, request.request.input, request.request.tool_use_id, signal);
+      return result;
     }
     throw new Error("Unsupported control request subtype: " + request.request.subtype);
   }
@@ -383,8 +391,29 @@ class Query {
     if (!this.childStdin) {
       throw new Error("Cannot initialize without child stdin");
     }
+    let hooks;
+    if (this.hooks) {
+      hooks = {};
+      for (const [event, matchers] of Object.entries(this.hooks)) {
+        if (matchers.length > 0) {
+          hooks[event] = matchers.map((matcher) => {
+            const callbackIds = [];
+            for (const callback of matcher.hooks) {
+              const callbackId = `hook_${this.nextCallbackId++}`;
+              this.hookCallbacks.set(callbackId, callback);
+              callbackIds.push(callbackId);
+            }
+            return {
+              matcher: matcher.matcher,
+              hookCallbackIds: callbackIds
+            };
+          });
+        }
+      }
+    }
     const initRequest = {
-      subtype: "initialize"
+      subtype: "initialize",
+      hooks
     };
     const response = await this.request(initRequest, this.childStdin);
     return response.response;
@@ -395,6 +424,15 @@ class Query {
     }
     await this.request({
       subtype: "interrupt"
+    }, this.childStdin);
+  }
+  async setPermissionMode(mode) {
+    if (!this.childStdin) {
+      throw new Error("setPermissionMode requires --input-format stream-json");
+    }
+    await this.request({
+      subtype: "set_permission_mode",
+      mode
     }, this.childStdin);
   }
   request(request, childStdin) {
@@ -421,6 +459,15 @@ class Query {
       throw new Error("Interrupt requires --input-format stream-json");
     }
     return (await this.intialization).commands;
+  }
+  handleHookCallbacks(callbackId, input, toolUseID, abortSignal) {
+    const callback = this.hookCallbacks.get(callbackId);
+    if (!callback) {
+      throw new Error(`No hook callback found for ID: ${callbackId}`);
+    }
+    return callback(input, toolUseID, {
+      signal: abortSignal
+    });
   }
 }
 async function streamToStdin(stream, stdin, abortController) {

@@ -31,6 +31,87 @@ export type PermissionResult = {
 export type CanUseTool = (toolName: string, input: Record<string, unknown>, options: {
     signal: AbortSignal;
 }) => Promise<PermissionResult>;
+export declare const HOOK_EVENTS: readonly ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "SessionStart", "SessionEnd", "Stop", "SubagentStop", "PreCompact"];
+export type HookEvent = (typeof HOOK_EVENTS)[number];
+export type HookCallback = (input: HookInput, toolUseID: string | undefined, options: {
+    signal: AbortSignal;
+}) => Promise<HookJSONOutput>;
+export interface HookCallbackMatcher {
+    matcher?: string;
+    hooks: HookCallback[];
+}
+export type BaseHookInput = {
+    session_id: string;
+    transcript_path: string;
+    cwd: string;
+};
+export type PreToolUseHookInput = BaseHookInput & {
+    hook_event_name: 'PreToolUse';
+    tool_name: string;
+    tool_input: unknown;
+};
+export type PostToolUseHookInput = BaseHookInput & {
+    hook_event_name: 'PostToolUse';
+    tool_name: string;
+    tool_input: unknown;
+    tool_response: unknown;
+};
+export type NotificationHookInput = BaseHookInput & {
+    hook_event_name: 'Notification';
+    message: string;
+    title?: string;
+};
+export type UserPromptSubmitHookInput = BaseHookInput & {
+    hook_event_name: 'UserPromptSubmit';
+    prompt: string;
+};
+export type SessionStartHookInput = BaseHookInput & {
+    hook_event_name: 'SessionStart';
+    source: 'startup' | 'resume' | 'clear' | 'compact';
+};
+export type StopHookInput = BaseHookInput & {
+    hook_event_name: 'Stop';
+    stop_hook_active: boolean;
+};
+export type SubagentStopHookInput = BaseHookInput & {
+    hook_event_name: 'SubagentStop';
+    stop_hook_active: boolean;
+};
+export type PreCompactHookInput = BaseHookInput & {
+    hook_event_name: 'PreCompact';
+    trigger: 'manual' | 'auto';
+    custom_instructions: string | null;
+};
+export declare const EXIT_REASONS: string[];
+export type ExitReason = (typeof EXIT_REASONS)[number];
+export type SessionEndHookInput = BaseHookInput & {
+    hook_event_name: 'SessionEnd';
+    reason: ExitReason;
+};
+export type HookInput = PreToolUseHookInput | PostToolUseHookInput | NotificationHookInput | UserPromptSubmitHookInput | SessionStartHookInput | SessionEndHookInput | StopHookInput | SubagentStopHookInput | PreCompactHookInput;
+export interface HookJSONOutput {
+    continue?: boolean;
+    suppressOutput?: boolean;
+    stopReason?: string;
+    decision?: 'approve' | 'block';
+    systemMessage?: string;
+    permissionDecision?: 'allow' | 'deny' | 'ask';
+    reason?: string;
+    hookSpecificOutput?: {
+        hookEventName: 'PreToolUse';
+        permissionDecision?: 'allow' | 'deny' | 'ask';
+        permissionDecisionReason?: string;
+    } | {
+        hookEventName: 'UserPromptSubmit';
+        additionalContext?: string;
+    } | {
+        hookEventName: 'SessionStart';
+        additionalContext?: string;
+    } | {
+        hookEventName: 'PostToolUse';
+        additionalContext?: string;
+    };
+}
 export type Options = {
     abortController?: AbortController;
     additionalDirectories?: string[];
@@ -45,6 +126,7 @@ export type Options = {
     executable?: 'bun' | 'deno' | 'node';
     executableArgs?: string[];
     fallbackModel?: string;
+    hooks?: Partial<Record<HookEvent, HookCallbackMatcher[]>>;
     maxThinkingTokens?: number;
     maxTurns?: number;
     mcpServers?: Record<string, McpServerConfig>;
@@ -112,6 +194,7 @@ export type SDKSystemMessage = {
     model: string;
     permissionMode: PermissionMode;
     slash_commands: string[];
+    output_style: string;
 };
 export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKResultMessage | SDKSystemMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
@@ -120,6 +203,11 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
      * Only supported when streaming input is used.
      */
     interrupt(): Promise<void>;
+    /**
+     * Sets the permission mode.
+     * Only supported when streaming input is used.
+     */
+    setPermissionMode(mode: PermissionMode): Promise<void>;
 }
 /**
  * Query Claude Code
