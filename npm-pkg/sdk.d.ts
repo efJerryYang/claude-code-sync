@@ -1,4 +1,5 @@
 import type { Message as APIAssistantMessage, MessageParam as APIUserMessage, Usage } from '@anthropic-ai/sdk/resources/index.mjs';
+import type { UUID } from 'crypto';
 export type NonNullableUsage = {
     [K in keyof Usage]: NonNullable<Usage[K]>;
 };
@@ -139,24 +140,31 @@ export type Options = {
     strictMcpConfig?: boolean;
 };
 export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
-export type SDKUserMessage = {
+type SDKMessageBase = {
+    uuid: UUID;
+    session_id: string;
+};
+type SDKUserMessageContent = {
     type: 'user';
     message: APIUserMessage;
     parent_tool_use_id: string | null;
+};
+export type SDKUserMessage = SDKUserMessageContent & {
+    uuid?: UUID;
     session_id: string;
 };
-export type SDKAssistantMessage = {
+export type SDKUserMessageReplay = SDKMessageBase & SDKUserMessageContent;
+export type SDKAssistantMessage = SDKMessageBase & {
     type: 'assistant';
     message: APIAssistantMessage;
     parent_tool_use_id: string | null;
-    session_id: string;
 };
 export type SDKPermissionDenial = {
     tool_name: string;
     tool_use_id: string;
     tool_input: Record<string, unknown>;
 };
-export type SDKResultMessage = {
+export type SDKResultMessage = (SDKMessageBase & {
     type: 'result';
     subtype: 'success';
     duration_ms: number;
@@ -164,28 +172,25 @@ export type SDKResultMessage = {
     is_error: boolean;
     num_turns: number;
     result: string;
-    session_id: string;
     total_cost_usd: number;
     usage: NonNullableUsage;
     permission_denials: SDKPermissionDenial[];
-} | {
+}) | (SDKMessageBase & {
     type: 'result';
     subtype: 'error_max_turns' | 'error_during_execution';
     duration_ms: number;
     duration_api_ms: number;
     is_error: boolean;
     num_turns: number;
-    session_id: string;
     total_cost_usd: number;
     usage: NonNullableUsage;
     permission_denials: SDKPermissionDenial[];
-};
-export type SDKSystemMessage = {
+});
+export type SDKSystemMessage = SDKMessageBase & {
     type: 'system';
     subtype: 'init';
     apiKeySource: ApiKeySource;
     cwd: string;
-    session_id: string;
     tools: string[];
     mcp_servers: {
         name: string;
@@ -196,7 +201,7 @@ export type SDKSystemMessage = {
     slash_commands: string[];
     output_style: string;
 };
-export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKResultMessage | SDKSystemMessage;
+export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
     /**
      * Interrupt the query.
@@ -230,3 +235,4 @@ export declare function query({ prompt, options, }: {
 }): Query;
 export declare class AbortError extends Error {
 }
+export {};
