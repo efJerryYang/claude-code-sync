@@ -126,6 +126,7 @@ export type Options = {
     env?: Dict<string>;
     executable?: 'bun' | 'deno' | 'node';
     executableArgs?: string[];
+    extraArgs?: Record<string, string | null>;
     fallbackModel?: string;
     hooks?: Partial<Record<HookEvent, HookCallbackMatcher[]>>;
     maxThinkingTokens?: number;
@@ -138,6 +139,10 @@ export type Options = {
     resume?: string;
     stderr?: (data: string) => void;
     strictMcpConfig?: boolean;
+    websocket?: {
+        url: string;
+        headers?: Record<string, string>;
+    };
 };
 export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
 type SDKMessageBase = {

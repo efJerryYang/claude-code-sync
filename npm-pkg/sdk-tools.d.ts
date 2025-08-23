@@ -303,6 +303,7 @@ export interface TodoWriteInput {
   todos: {
     content: string;
     status: "pending" | "in_progress" | "completed";
+    activeForm: string;
   }[];
 }
 export interface WebFetchInput {
