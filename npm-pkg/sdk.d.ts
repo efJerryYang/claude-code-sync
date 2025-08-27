@@ -1,5 +1,6 @@
-import type { Message as APIAssistantMessage, MessageParam as APIUserMessage, Usage } from '@anthropic-ai/sdk/resources/index.mjs';
+import type { Message as APIAssistantMessage, MessageParam as APIUserMessage, Usage } from '@anthropic-ai/sdk/resources';
 import type { UUID } from 'crypto';
+import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 export type NonNullableUsage = {
     [K in keyof Usage]: NonNullable<Usage[K]>;
 };
@@ -21,7 +22,15 @@ export type McpHttpServerConfig = {
     url: string;
     headers?: Record<string, string>;
 };
-export type McpServerConfig = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig;
+export type McpSdkServerConfig = {
+    type: 'sdk';
+    name: string;
+};
+export type McpSdkServerConfigWithInstance = McpSdkServerConfig & {
+    instance: McpServer;
+};
+export type McpServerConfig = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig | McpSdkServerConfigWithInstance;
+export type McpServerConfigForProcessTransport = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig | McpSdkServerConfig;
 export type PermissionResult = {
     behavior: 'allow';
     updatedInput: Record<string, unknown>;
@@ -45,6 +54,7 @@ export type BaseHookInput = {
     session_id: string;
     transcript_path: string;
     cwd: string;
+    permission_mode?: string;
 };
 export type PreToolUseHookInput = BaseHookInput & {
     hook_event_name: 'PreToolUse';
@@ -139,10 +149,6 @@ export type Options = {
     resume?: string;
     stderr?: (data: string) => void;
     strictMcpConfig?: boolean;
-    websocket?: {
-        url: string;
-        headers?: Record<string, string>;
-    };
 };
 export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
 type SDKMessageBase = {
