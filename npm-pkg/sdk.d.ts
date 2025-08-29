@@ -1,6 +1,8 @@
 import type { Message as APIAssistantMessage, MessageParam as APIUserMessage, Usage } from '@anthropic-ai/sdk/resources';
 import type { UUID } from 'crypto';
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { type z, type ZodRawShape, type ZodObject } from 'zod';
 export type NonNullableUsage = {
     [K in keyof Usage]: NonNullable<Usage[K]>;
 };
@@ -31,15 +33,51 @@ export type McpSdkServerConfigWithInstance = McpSdkServerConfig & {
 };
 export type McpServerConfig = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig | McpSdkServerConfigWithInstance;
 export type McpServerConfigForProcessTransport = McpStdioServerConfig | McpSSEServerConfig | McpHttpServerConfig | McpSdkServerConfig;
+type PermissionUpdateDestination = 'userSettings' | 'projectSettings' | 'localSettings' | 'session';
+export type PermissionBehavior = 'allow' | 'deny' | 'ask';
+export type PermissionUpdate = {
+    type: 'addRules';
+    rules: PermissionRuleValue[];
+    behavior: PermissionBehavior;
+    destination: PermissionUpdateDestination;
+} | {
+    type: 'replaceRules';
+    rules: PermissionRuleValue[];
+    behavior: PermissionBehavior;
+    destination: PermissionUpdateDestination;
+} | {
+    type: 'removeRules';
+    rules: PermissionRuleValue[];
+    behavior: PermissionBehavior;
+    destination: PermissionUpdateDestination;
+} | {
+    type: 'setMode';
+    mode: PermissionMode;
+    destination: PermissionUpdateDestination;
+} | {
+    type: 'addDirectories';
+    directories: string[];
+    destination: PermissionUpdateDestination;
+} | {
+    type: 'removeDirectories';
+    directories: string[];
+    destination: PermissionUpdateDestination;
+};
 export type PermissionResult = {
     behavior: 'allow';
     updatedInput: Record<string, unknown>;
+    updatedPermissions?: PermissionUpdate[];
 } | {
     behavior: 'deny';
     message: string;
 };
+export type PermissionRuleValue = {
+    toolName: string;
+    ruleContent?: string;
+};
 export type CanUseTool = (toolName: string, input: Record<string, unknown>, options: {
     signal: AbortSignal;
+    suggestions?: PermissionUpdate[];
 }) => Promise<PermissionResult>;
 export declare const HOOK_EVENTS: readonly ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "SessionStart", "SessionEnd", "Stop", "SubagentStop", "PreCompact"];
 export type HookEvent = (typeof HOOK_EVENTS)[number];
@@ -244,6 +282,23 @@ export declare function query({ prompt, options, }: {
     prompt: string | AsyncIterable<SDKUserMessage>;
     options?: Options;
 }): Query;
+type SdkMcpToolDefinition<Schema extends ZodRawShape = ZodRawShape> = {
+    name: string;
+    description: string;
+    inputSchema: Schema;
+    handler: (args: z.infer<ZodObject<Schema>>, extra: unknown) => Promise<CallToolResult>;
+};
+export declare function tool<Schema extends ZodRawShape>(name: string, description: string, inputSchema: Schema, handler: (args: z.infer<ZodObject<Schema>>, extra: unknown) => Promise<CallToolResult>): SdkMcpToolDefinition<Schema>;
+type CreateSdkMcpServerOptions = {
+    name: string;
+    version?: string;
+    tools?: Array<SdkMcpToolDefinition<any>>;
+};
+/**
+ * Creates an MCP server instance that can be used with the SDK transport.
+ * This allows SDK users to define custom tools that run in the same process.
+ */
+export declare function createSdkMcpServer(options: CreateSdkMcpServerOptions): McpSdkServerConfigWithInstance;
 export declare class AbortError extends Error {
 }
 export {};

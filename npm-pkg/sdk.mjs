@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.93
+// Version: 1.0.96
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6902,7 +6902,8 @@ class Query {
         throw new Error("canUseTool callback is not provided.");
       }
       return this.canUseTool(request.request.tool_name, request.request.input, {
-        signal
+        signal,
+        suggestions: request.request.permission_suggestions
       });
     } else if (request.request.subtype === "hook_callback") {
       const result = await this.handleHookCallbacks(request.request.callback_id, request.request.input, request.request.tool_use_id, signal);
