@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.96
+// Version: 1.0.98
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6201,10 +6201,6 @@ var require_ajv = __commonJS((exports, module) => {
   function noop() {}
 });
 
-// src/entrypoints/sdk.ts
-import { join as join2 } from "path";
-import { fileURLToPath as fileURLToPath2 } from "url";
-
 // src/utils/abortController.ts
 import { setMaxListeners } from "events";
 var DEFAULT_MAX_LISTENERS = 50;
@@ -6340,11 +6336,9 @@ class ProcessTransport {
   exitListeners = [];
   processExitHandler;
   abortHandler;
-  isStreaming;
   constructor(options) {
     this.options = options;
     this.abortController = options.abortController || createAbortController();
-    this.isStreaming = typeof options.prompt !== "string";
     this.initialize();
   }
   initialize() {
@@ -6443,11 +6437,15 @@ class ProcessTransport {
       const claudeCodePath = pathToClaudeCodeExecutable || this.getDefaultExecutablePath();
       const fs2 = getFsImplementation();
       if (!fs2.existsSync(claudeCodePath)) {
-        throw new Error(`Claude Code executable not found at ${claudeCodePath}. Is options.pathToClaudeCodeExecutable set?`);
+        const errorMessage = isNativeBinary(claudeCodePath) ? `Claude Code native binary not found at ${claudeCodePath}. Please ensure Claude Code is installed via native installer or specify a valid path with options.pathToClaudeCodeExecutable.` : `Claude Code executable not found at ${claudeCodePath}. Is options.pathToClaudeCodeExecutable set?`;
+        throw new ReferenceError(errorMessage);
       }
-      this.logDebug(`Spawning Claude Code process: ${executable} ${[...executableArgs, claudeCodePath, ...args].join(" ")}`);
+      const isNative = isNativeBinary(claudeCodePath);
+      const spawnCommand = isNative ? claudeCodePath : executable;
+      const spawnArgs = isNative ? args : [...executableArgs, claudeCodePath, ...args];
+      this.logDebug(isNative ? `Spawning Claude Code native binary: ${claudeCodePath} ${args.join(" ")}` : `Spawning Claude Code process: ${executable} ${[...executableArgs, claudeCodePath, ...args].join(" ")}`);
       const stderrMode = env.DEBUG || stderr ? "pipe" : "ignore";
-      this.child = spawn(executable, [...executableArgs, claudeCodePath, ...args], {
+      this.child = spawn(spawnCommand, spawnArgs, {
         cwd,
         stdio: ["pipe", "pipe", stderrMode],
         signal: this.abortController.signal,
@@ -6665,6 +6663,10 @@ class ProcessTransport {
       });
     });
   }
+}
+function isNativeBinary(executablePath) {
+  const jsExtensions = [".js", ".mjs", ".tsx", ".ts", ".jsx"];
+  return !jsExtensions.some((ext) => executablePath.endsWith(ext));
 }
 
 // src/utils/stream.ts
@@ -13995,11 +13997,6 @@ function query({
   }
   if (!env.CLAUDE_CODE_ENTRYPOINT) {
     env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
-  }
-  if (pathToClaudeCodeExecutable === undefined) {
-    const filename = fileURLToPath2(import.meta.url);
-    const dirname = join2(filename, "..");
-    pathToClaudeCodeExecutable = join2(dirname, "cli.js");
   }
   const allMcpServers = {};
   const sdkMcpServers = new Map;

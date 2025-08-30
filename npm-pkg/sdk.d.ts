@@ -70,6 +70,7 @@ export type PermissionResult = {
 } | {
     behavior: 'deny';
     message: string;
+    interrupt?: boolean;
 };
 export type PermissionRuleValue = {
     toolName: string;

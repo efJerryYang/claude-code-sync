@@ -21,7 +21,6 @@ export type ToolInputSchemas =
   | GrepInput
   | KillShellInput
   | ListMcpResourcesInput
-  | LsInput
   | McpInput
   | NotebookEditInput
   | ReadMcpResourceInput
@@ -250,16 +249,6 @@ export interface ListMcpResourcesInput {
    * Optional server name to filter resources by
    */
   server?: string;
-}
-export interface LsInput {
-  /**
-   * The absolute path to the directory to list (must be absolute, not relative)
-   */
-  path: string;
-  /**
-   * List of glob patterns to ignore
-   */
-  ignore?: string[];
 }
 export interface McpInput {
   [k: string]: unknown;
