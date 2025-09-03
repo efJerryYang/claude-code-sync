@@ -52,18 +52,18 @@ export interface BashInput {
    */
   timeout?: number;
   /**
-   *  Clear, concise description of what this command does in 5-10 words. Examples:
+   * Clear, concise description of what this command does in 5-10 words, in active voice. Examples:
    * Input: ls
-   * Output: Lists files in current directory
+   * Output: List files in current directory
    *
    * Input: git status
-   * Output: Shows working tree status
+   * Output: Show working tree status
    *
    * Input: npm install
-   * Output: Installs package dependencies
+   * Output: Install package dependencies
    *
    * Input: mkdir foo
-   * Output: Creates directory 'foo'
+   * Output: Create directory 'foo'
    */
   description?: string;
   /**

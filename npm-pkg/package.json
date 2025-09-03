@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/claude-code",
-  "version": "1.0.100",
+  "version": "1.0.102",
   "main": "sdk.mjs",
   "types": "sdk.d.ts",
   "bin": {
