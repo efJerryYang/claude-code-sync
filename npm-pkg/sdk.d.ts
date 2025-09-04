@@ -71,6 +71,8 @@ export type PermissionResult = {
     behavior: 'deny';
     message: string;
     interrupt?: boolean;
+} | {
+    behavior: 'passthrough';
 };
 export type PermissionRuleValue = {
     toolName: string;

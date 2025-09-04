@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.102
+// Version: 1.0.103
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6202,8 +6202,8 @@ var require_ajv = __commonJS((exports, module) => {
 });
 
 // src/entrypoints/sdk.ts
-import { join as join2 } from "path";
-import { fileURLToPath as fileURLToPath2 } from "url";
+import { join } from "path";
+import { fileURLToPath } from "url";
 
 // src/utils/abortController.ts
 import { setMaxListeners } from "events";
@@ -6216,8 +6216,6 @@ function createAbortController(maxListeners = DEFAULT_MAX_LISTENERS) {
 
 // src/transport/ProcessTransport.ts
 import { spawn } from "child_process";
-import { join } from "path";
-import { fileURLToPath } from "url";
 import { createInterface } from "readline";
 
 // src/utils/fsOperations.ts
@@ -6340,11 +6338,9 @@ class ProcessTransport {
   exitListeners = [];
   processExitHandler;
   abortHandler;
-  isStreaming;
   constructor(options) {
     this.options = options;
     this.abortController = options.abortController || createAbortController();
-    this.isStreaming = typeof options.prompt !== "string";
     this.initialize();
   }
   initialize() {
@@ -6440,14 +6436,17 @@ class ProcessTransport {
       if (!env.CLAUDE_CODE_ENTRYPOINT) {
         env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
       }
-      const claudeCodePath = pathToClaudeCodeExecutable || this.getDefaultExecutablePath();
       const fs2 = getFsImplementation();
-      if (!fs2.existsSync(claudeCodePath)) {
-        throw new Error(`Claude Code executable not found at ${claudeCodePath}. Is options.pathToClaudeCodeExecutable set?`);
+      if (!fs2.existsSync(pathToClaudeCodeExecutable)) {
+        const errorMessage = isNativeBinary(pathToClaudeCodeExecutable) ? `Claude Code native binary not found at ${pathToClaudeCodeExecutable}. Please ensure Claude Code is installed via native installer or specify a valid path with options.pathToClaudeCodeExecutable.` : `Claude Code executable not found at ${pathToClaudeCodeExecutable}. Is options.pathToClaudeCodeExecutable set?`;
+        throw new ReferenceError(errorMessage);
       }
-      this.logDebug(`Spawning Claude Code process: ${executable} ${[...executableArgs, claudeCodePath, ...args].join(" ")}`);
+      const isNative = isNativeBinary(pathToClaudeCodeExecutable);
+      const spawnCommand = isNative ? pathToClaudeCodeExecutable : executable;
+      const spawnArgs = isNative ? args : [...executableArgs, pathToClaudeCodeExecutable, ...args];
+      this.logDebug(isNative ? `Spawning Claude Code native binary: ${pathToClaudeCodeExecutable} ${args.join(" ")}` : `Spawning Claude Code process: ${executable} ${[...executableArgs, pathToClaudeCodeExecutable, ...args].join(" ")}`);
       const stderrMode = env.DEBUG || stderr ? "pipe" : "ignore";
-      this.child = spawn(executable, [...executableArgs, claudeCodePath, ...args], {
+      this.child = spawn(spawnCommand, spawnArgs, {
         cwd,
         stdio: ["pipe", "pipe", stderrMode],
         signal: this.abortController.signal,
@@ -6510,11 +6509,6 @@ class ProcessTransport {
       return new Error(`Claude Code process terminated by signal ${signal}`);
     }
     return;
-  }
-  getDefaultExecutablePath() {
-    const filename = fileURLToPath(import.meta.url);
-    const dirname = join(filename, "..", "..");
-    return join(dirname, "entrypoints", "cli.js");
   }
   isRunningWithBun() {
     return process.versions.bun !== undefined || process.env.BUN_INSTALL !== undefined;
@@ -6665,6 +6659,10 @@ class ProcessTransport {
       });
     });
   }
+}
+function isNativeBinary(executablePath) {
+  const jsExtensions = [".js", ".mjs", ".tsx", ".ts", ".jsx"];
+  return !jsExtensions.some((ext) => executablePath.endsWith(ext));
 }
 
 // src/utils/stream.ts
@@ -13997,9 +13995,9 @@ function query({
     env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
   }
   if (pathToClaudeCodeExecutable === undefined) {
-    const filename = fileURLToPath2(import.meta.url);
-    const dirname = join2(filename, "..");
-    pathToClaudeCodeExecutable = join2(dirname, "cli.js");
+    const filename = fileURLToPath(import.meta.url);
+    const dirname = join(filename, "..");
+    pathToClaudeCodeExecutable = join(dirname, "cli.js");
   }
   const allMcpServers = {};
   const sdkMcpServers = new Map;
