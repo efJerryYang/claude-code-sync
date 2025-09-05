@@ -71,8 +71,6 @@ export type PermissionResult = {
     behavior: 'deny';
     message: string;
     interrupt?: boolean;
-} | {
-    behavior: 'passthrough';
 };
 export type PermissionRuleValue = {
     toolName: string;
@@ -192,7 +190,7 @@ export type Options = {
     strictMcpConfig?: boolean;
 };
 export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
-type SDKMessageBase = {
+export type SDKMessageBase = {
     uuid: UUID;
     session_id: string;
 };
@@ -253,7 +251,15 @@ export type SDKSystemMessage = SDKMessageBase & {
     slash_commands: string[];
     output_style: string;
 };
-export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage;
+export type SDKCompactBoundaryMessage = SDKMessageBase & {
+    type: 'system';
+    subtype: 'compact_boundary';
+    compact_metadata: {
+        trigger: 'manual' | 'auto';
+        pre_tokens: number;
+    };
+};
+export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage | SDKCompactBoundaryMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
     /**
      * Interrupt the query.
