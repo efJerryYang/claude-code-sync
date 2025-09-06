@@ -70,14 +70,6 @@ export interface BashInput {
    * Set to true to run this command in the background. Use BashOutput to read the output later.
    */
   run_in_background?: boolean;
-  /**
-   * whether to run this command in sandboxed mode: command run in this mode may not write to the filesystem or use the network, but they can read files, analyze data, and report back to you.  When possible, run commands (e.g. grep) in this mode to present a smoother experience for the human, who isn't prompted to approve commands run in sandbox mode. If you run a command in sandbox mode and it looks like it fails because it needs write access after all, try again in non-sandbox mode
-   */
-  sandbox?: boolean;
-  /**
-   * Optional shell path to use instead of the default shell. The snapshot path will be set to undefined as well. Used primarily for testing.
-   */
-  shellExecutable?: string;
 }
 export interface BashOutputInput {
   /**

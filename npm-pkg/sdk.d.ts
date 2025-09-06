@@ -1,4 +1,5 @@
-import type { Message as APIAssistantMessage, MessageParam as APIUserMessage, Usage } from '@anthropic-ai/sdk/resources';
+import type { MessageParam as APIUserMessage } from '@anthropic-ai/sdk/resources';
+import type { BetaMessage as APIAssistantMessage, BetaUsage as Usage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs';
 import type { UUID } from 'crypto';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -251,15 +252,7 @@ export type SDKSystemMessage = SDKMessageBase & {
     slash_commands: string[];
     output_style: string;
 };
-export type SDKCompactBoundaryMessage = SDKMessageBase & {
-    type: 'system';
-    subtype: 'compact_boundary';
-    compact_metadata: {
-        trigger: 'manual' | 'auto';
-        pre_tokens: number;
-    };
-};
-export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage | SDKCompactBoundaryMessage;
+export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
     /**
      * Interrupt the query.
