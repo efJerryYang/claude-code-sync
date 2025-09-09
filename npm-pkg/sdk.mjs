@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.108
+// Version: 1.0.109
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6315,6 +6315,9 @@ var NodeFsOperations = {
   },
   rmSync(path, options) {
     fs.rmSync(path, options);
+  },
+  createWriteStream(path) {
+    return fs.createWriteStream(path);
   }
 };
 var activeFs = NodeFsOperations;
@@ -6368,7 +6371,8 @@ class ProcessTransport {
         disallowedTools = [],
         mcpServers,
         strictMcpConfig,
-        canUseTool
+        canUseTool,
+        includePartialMessages
       } = this.options;
       const args = ["--output-format", "stream-json", "--verbose"];
       if (customSystemPrompt)
@@ -6416,6 +6420,9 @@ class ProcessTransport {
           throw new Error("Fallback model cannot be the same as the main model. Please specify a different model for fallbackModel option.");
         }
         args.push("--fallback-model", fallbackModel);
+      }
+      if (includePartialMessages) {
+        args.push("--include-partial-messages");
       }
       if (typeof prompt === "string") {
         args.push("--print");
@@ -6849,9 +6856,6 @@ class Query {
           continue;
         } else if (message.type === "control_cancel_request") {
           this.handleControlCancelRequest(message);
-          continue;
-        }
-        if (message.type === "stream_event") {
           continue;
         }
         this.inputStream.enqueue(message);
@@ -13983,6 +13987,7 @@ function query({
     extraArgs = {},
     fallbackModel,
     hooks,
+    includePartialMessages,
     maxTurns,
     mcpServers,
     model,
@@ -14046,7 +14051,8 @@ function query({
     mcpServers,
     strictMcpConfig,
     canUseTool: !!canUseTool,
-    hooks: !!hooks
+    hooks: !!hooks,
+    includePartialMessages
   });
   const query2 = new Query(transport, isStreamingMode, canUseTool, hooks, abortController, sdkMcpServers);
   if (typeof prompt !== "string") {

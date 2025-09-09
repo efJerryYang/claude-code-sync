@@ -1,5 +1,5 @@
 import type { MessageParam as APIUserMessage } from '@anthropic-ai/sdk/resources';
-import type { BetaMessage as APIAssistantMessage, BetaUsage as Usage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs';
+import type { BetaMessage as APIAssistantMessage, BetaUsage as Usage, BetaRawMessageStreamEvent as RawMessageStreamEvent } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs';
 import type { UUID } from 'crypto';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -140,13 +140,16 @@ export type SessionEndHookInput = BaseHookInput & {
     reason: ExitReason;
 };
 export type HookInput = PreToolUseHookInput | PostToolUseHookInput | NotificationHookInput | UserPromptSubmitHookInput | SessionStartHookInput | SessionEndHookInput | StopHookInput | SubagentStopHookInput | PreCompactHookInput;
-export interface HookJSONOutput {
+export type AsyncHookJSONOutput = {
+    async: true;
+    asyncTimeout?: number;
+};
+export type SyncHookJSONOutput = {
     continue?: boolean;
     suppressOutput?: boolean;
     stopReason?: string;
     decision?: 'approve' | 'block';
     systemMessage?: string;
-    permissionDecision?: 'allow' | 'deny' | 'ask';
     reason?: string;
     hookSpecificOutput?: {
         hookEventName: 'PreToolUse';
@@ -162,7 +165,8 @@ export interface HookJSONOutput {
         hookEventName: 'PostToolUse';
         additionalContext?: string;
     };
-}
+};
+export type HookJSONOutput = AsyncHookJSONOutput | SyncHookJSONOutput;
 export type Options = {
     abortController?: AbortController;
     additionalDirectories?: string[];
@@ -179,6 +183,7 @@ export type Options = {
     extraArgs?: Record<string, string | null>;
     fallbackModel?: string;
     hooks?: Partial<Record<HookEvent, HookCallbackMatcher[]>>;
+    includePartialMessages?: boolean;
     maxThinkingTokens?: number;
     maxTurns?: number;
     mcpServers?: Record<string, McpServerConfig>;
@@ -252,7 +257,20 @@ export type SDKSystemMessage = SDKMessageBase & {
     slash_commands: string[];
     output_style: string;
 };
-export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage;
+export type SDKPartialAssistantMessage = SDKMessageBase & {
+    type: 'stream_event';
+    event: RawMessageStreamEvent;
+    parent_tool_use_id: string | null;
+};
+export type SDKCompactBoundaryMessage = SDKMessageBase & {
+    type: 'system';
+    subtype: 'compact_boundary';
+    compact_metadata: {
+        trigger: 'manual' | 'auto';
+        pre_tokens: number;
+    };
+};
+export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage | SDKPartialAssistantMessage | SDKCompactBoundaryMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
     /**
      * Interrupt the query.
