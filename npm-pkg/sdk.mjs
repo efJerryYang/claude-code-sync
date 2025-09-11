@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.109
+// Version: 1.0.111
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6329,6 +6329,11 @@ function getFsImplementation() {
 class AbortError extends Error {
 }
 
+// src/utils/bundledMode.ts
+function isRunningWithBun() {
+  return process.versions.bun !== undefined;
+}
+
 // src/transport/ProcessTransport.ts
 class ProcessTransport {
   options;
@@ -6352,7 +6357,7 @@ class ProcessTransport {
         prompt,
         additionalDirectories = [],
         cwd,
-        executable = this.isRunningWithBun() ? "bun" : "node",
+        executable = isRunningWithBun() ? "bun" : "node",
         executableArgs = [],
         extraArgs = {},
         pathToClaudeCodeExecutable,
@@ -6516,9 +6521,6 @@ class ProcessTransport {
       return new Error(`Claude Code process terminated by signal ${signal}`);
     }
     return;
-  }
-  isRunningWithBun() {
-    return process.versions.bun !== undefined || process.env.BUN_INSTALL !== undefined;
   }
   logDebug(message) {
     if (process.env.DEBUG) {
@@ -6786,7 +6788,7 @@ class Query {
   cleanupPerformed = false;
   sdkMessages;
   inputStream = new Stream;
-  intialization;
+  initialization;
   cancelControllers = new Map;
   hookCallbacks = new Map;
   nextCallbackId = 0;
@@ -6806,7 +6808,7 @@ class Query {
     this.sdkMessages = this.readSdkMessages();
     this.readMessages();
     if (this.isStreamingMode) {
-      this.intialization = this.initialize();
+      this.initialization = this.initialize();
     }
   }
   setError(error) {
@@ -6968,23 +6970,26 @@ class Query {
     return response.response;
   }
   async interrupt() {
-    if (!this.isStreamingMode) {
-      throw new Error("Interrupt requires --input-format stream-json");
-    }
     await this.request({
       subtype: "interrupt"
     });
   }
   async setPermissionMode(mode) {
-    if (!this.isStreamingMode) {
-      throw new Error("setPermissionMode requires --input-format stream-json");
-    }
     await this.request({
       subtype: "set_permission_mode",
       mode
     });
   }
+  async setModel(model) {
+    await this.request({
+      subtype: "set_model",
+      model
+    });
+  }
   request(request) {
+    if (!this.isStreamingMode) {
+      throw new Error(`${request.subtype} requires --input-format stream-json`);
+    }
     const requestId = Math.random().toString(36).substring(2, 15);
     const sdkRequest = {
       request_id: requestId,
@@ -7004,13 +7009,16 @@ class Query {
     });
   }
   async supportedCommands() {
-    if (!this.isStreamingMode) {
-      throw new Error("supportedCommands requires --input-format stream-json");
+    if (!this.isStreamingMode || !this.initialization) {
+      throw new Error("supportedCommands is only supported in streaming mode");
     }
-    if (!this.intialization) {
-      throw new Error("supportedCommands requires transport with bidirectional communication");
+    return (await this.initialization).commands;
+  }
+  async supportedModels() {
+    if (!this.isStreamingMode || !this.initialization) {
+      throw new Error("supportedModels is only supported in streaming mode");
     }
-    return (await this.intialization).commands;
+    return (await this.initialization).models;
   }
   async streamInput(stream) {
     try {
@@ -14059,9 +14067,6 @@ function query({
     query2.streamInput(prompt);
   }
   return query2;
-}
-function isRunningWithBun() {
-  return process.versions.bun !== undefined || process.env.BUN_INSTALL !== undefined;
 }
 export {
   tool,

@@ -66,11 +66,42 @@ export type PermissionUpdate = {
 };
 export type PermissionResult = {
     behavior: 'allow';
+    /**
+     * Updated tool input to use, if any changes are needed.
+     *
+     * For example if the user was given the option to update the tool use
+     * input before approving, then this would be the updated input which
+     * would be executed by the tool.
+     */
     updatedInput: Record<string, unknown>;
+    /**
+     * Permissions updates to be applied as part of accepting this tool use.
+     *
+     * Typically this is used as part of the 'always allow' flow and these
+     * permission updates are from the `suggestions` field from the
+     * CanUseTool callback.
+     *
+     * It is recommended that you use these suggestions rather than
+     * attempting to re-derive them from the tool use input, as the
+     * suggestions may include other permission changes such as adding
+     * directories or incorporate complex tool-use logic such as bash
+     * commands.
+     */
     updatedPermissions?: PermissionUpdate[];
 } | {
     behavior: 'deny';
+    /**
+     * Message indicating the reason for denial, or guidance of what the
+     * model should do instead.
+     */
     message: string;
+    /**
+     * If true, interrupt execution and do not continue.
+     *
+     * Typically this should be set to true when the user says 'no' with no
+     * further guidance. Leave unset or false if the user provides guidance
+     * which the model should incorporate and continue.
+     */
     interrupt?: boolean;
 };
 export type PermissionRuleValue = {
@@ -78,7 +109,16 @@ export type PermissionRuleValue = {
     ruleContent?: string;
 };
 export type CanUseTool = (toolName: string, input: Record<string, unknown>, options: {
+    /** Signaled if the operation should be aborted. */
     signal: AbortSignal;
+    /**
+     * Suggestions for updating permissions so that the user will not be
+     * prompted again for this tool during this session.
+     *
+     * Typically if presenting the user an option 'always allow' or similar,
+     * then this full set of suggestions should be returned as the
+     * `updatedPermissions` in the PermissionResult.
+     */
     suggestions?: PermissionUpdate[];
 }) => Promise<PermissionResult>;
 export declare const HOOK_EVENTS: readonly ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "SessionStart", "SessionEnd", "Stop", "SubagentStop", "PreCompact"];
@@ -196,6 +236,16 @@ export type Options = {
     strictMcpConfig?: boolean;
 };
 export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
+export type SlashCommand = {
+    name: string;
+    desciption: string;
+    argumentHint: string;
+};
+export type ModelInfo = {
+    value: string;
+    displayName: string;
+    description: string;
+};
 export type SDKMessageBase = {
     uuid: UUID;
     session_id: string;
@@ -273,15 +323,15 @@ export type SDKCompactBoundaryMessage = SDKMessageBase & {
 export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage | SDKPartialAssistantMessage | SDKCompactBoundaryMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
     /**
-     * Interrupt the query.
-     * Only supported when streaming input is used.
+     * Control Requests
+     * The following methods are control requests, and are only supported when
+     * streaming input/output is used.
      */
     interrupt(): Promise<void>;
-    /**
-     * Sets the permission mode.
-     * Only supported when streaming input is used.
-     */
     setPermissionMode(mode: PermissionMode): Promise<void>;
+    setModel(model?: string): Promise<void>;
+    supportedCommands(): Promise<SlashCommand[]>;
+    supportedModels(): Promise<ModelInfo[]>;
 }
 /**
  * Query Claude Code
