@@ -7,6 +7,14 @@ import { type z, type ZodRawShape, type ZodObject } from 'zod';
 export type NonNullableUsage = {
     [K in keyof Usage]: NonNullable<Usage[K]>;
 };
+export type ModelUsage = {
+    inputTokens: number;
+    outputTokens: number;
+    cacheReadInputTokens: number;
+    cacheCreationInputTokens: number;
+    webSearchRequests: number;
+    costUSD: number;
+};
 export type ApiKeySource = 'user' | 'project' | 'org' | 'temporary';
 export type ConfigScope = 'local' | 'user' | 'project';
 export type McpStdioServerConfig = {
@@ -280,6 +288,9 @@ export type SDKResultMessage = (SDKMessageBase & {
     result: string;
     total_cost_usd: number;
     usage: NonNullableUsage;
+    modelUsage: {
+        [modelName: string]: ModelUsage;
+    };
     permission_denials: SDKPermissionDenial[];
 }) | (SDKMessageBase & {
     type: 'result';
@@ -290,6 +301,9 @@ export type SDKResultMessage = (SDKMessageBase & {
     num_turns: number;
     total_cost_usd: number;
     usage: NonNullableUsage;
+    modelUsage: {
+        [modelName: string]: ModelUsage;
+    };
     permission_denials: SDKPermissionDenial[];
 });
 export type SDKSystemMessage = SDKMessageBase & {
