@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.117
+// Version: 1.0.120
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6260,12 +6260,19 @@ var NodeFsOperations = {
   },
   writeFileSync(fsPath, data, options) {
     if (!options.flush) {
-      fs.writeFileSync(fsPath, data, { encoding: options.encoding });
+      const writeOptions = {
+        encoding: options.encoding
+      };
+      if (options.mode !== undefined) {
+        writeOptions.mode = options.mode;
+      }
+      fs.writeFileSync(fsPath, data, writeOptions);
       return;
     }
     let fd;
     try {
-      fd = fs.openSync(fsPath, "w");
+      const mode = options.mode !== undefined ? options.mode : undefined;
+      fd = fs.openSync(fsPath, "w", mode);
       fs.writeFileSync(fd, data, { encoding: options.encoding });
       fs.fsyncSync(fd);
     } finally {
@@ -6286,6 +6293,9 @@ var NodeFsOperations = {
   renameSync(oldPath, newPath) {
     fs.renameSync(oldPath, newPath);
   },
+  linkSync(target, path) {
+    fs.linkSync(target, path);
+  },
   symlinkSync(target, path) {
     fs.symlinkSync(target, path);
   },
@@ -6297,7 +6307,7 @@ var NodeFsOperations = {
   },
   mkdirSync(dirPath) {
     if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
+      fs.mkdirSync(dirPath, { recursive: true, mode: 448 });
     }
   },
   readdirSync(dirPath) {
@@ -6962,9 +6972,11 @@ class Query {
         }
       }
     }
+    const sdkMcpServers = this.sdkMcpTransports.size > 0 ? Array.from(this.sdkMcpTransports.keys()) : undefined;
     const initRequest = {
       subtype: "initialize",
-      hooks
+      hooks,
+      sdkMcpServers
     };
     const response = await this.request(initRequest);
     return response.response;
