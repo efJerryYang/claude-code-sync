@@ -246,13 +246,21 @@ export type Options = {
 export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
 export type SlashCommand = {
     name: string;
-    desciption: string;
+    description: string;
     argumentHint: string;
 };
 export type ModelInfo = {
     value: string;
     displayName: string;
     description: string;
+};
+export type McpServerStatus = {
+    name: string;
+    status: 'connected' | 'failed' | 'needs-auth' | 'pending';
+    serverInfo?: {
+        name: string;
+        version: string;
+    };
 };
 export type SDKMessageBase = {
     uuid: UUID;
@@ -346,6 +354,7 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
     setModel(model?: string): Promise<void>;
     supportedCommands(): Promise<SlashCommand[]>;
     supportedModels(): Promise<ModelInfo[]>;
+    mcpServerStatus(): Promise<McpServerStatus[]>;
 }
 /**
  * Query Claude Code

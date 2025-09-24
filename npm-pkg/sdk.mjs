@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.120
+// Version: 1.0.123
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6364,7 +6364,6 @@ class ProcessTransport {
   initialize() {
     try {
       const {
-        prompt,
         additionalDirectories = [],
         cwd,
         executable = isRunningWithBun() ? "bun" : "node",
@@ -6389,7 +6388,13 @@ class ProcessTransport {
         canUseTool,
         includePartialMessages
       } = this.options;
-      const args = ["--output-format", "stream-json", "--verbose"];
+      const args = [
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--input-format",
+        "stream-json"
+      ];
       if (customSystemPrompt)
         args.push("--system-prompt", customSystemPrompt);
       if (appendSystemPrompt)
@@ -6401,9 +6406,6 @@ class ProcessTransport {
       if (env.DEBUG)
         args.push("--debug-to-stderr");
       if (canUseTool) {
-        if (typeof prompt === "string") {
-          throw new Error("canUseTool callback requires --input-format stream-json. Please set prompt as an AsyncIterable.");
-        }
         if (permissionPromptToolName) {
           throw new Error("canUseTool callback cannot be used with permissionPromptToolName. Please use one or the other.");
         }
@@ -6439,12 +6441,6 @@ class ProcessTransport {
       if (includePartialMessages) {
         args.push("--include-partial-messages");
       }
-      if (typeof prompt === "string") {
-        args.push("--print");
-        args.push("--", prompt.trim());
-      } else {
-        args.push("--input-format", "stream-json");
-      }
       for (const dir of additionalDirectories) {
         args.push("--add-dir", dir);
       }
@@ -6466,7 +6462,7 @@ class ProcessTransport {
       const isNative = isNativeBinary(pathToClaudeCodeExecutable);
       const spawnCommand = isNative ? pathToClaudeCodeExecutable : executable;
       const spawnArgs = isNative ? args : [...executableArgs, pathToClaudeCodeExecutable, ...args];
-      this.logDebug(isNative ? `Spawning Claude Code native binary: ${pathToClaudeCodeExecutable} ${args.join(" ")}` : `Spawning Claude Code process: ${executable} ${[...executableArgs, pathToClaudeCodeExecutable, ...args].join(" ")}`);
+      this.logForDebugging(isNative ? `Spawning Claude Code native binary: ${pathToClaudeCodeExecutable} ${args.join(" ")}` : `Spawning Claude Code process: ${executable} ${[...executableArgs, pathToClaudeCodeExecutable, ...args].join(" ")}`);
       const stderrMode = env.DEBUG || stderr ? "pipe" : "ignore";
       this.child = spawn(spawnCommand, spawnArgs, {
         cwd,
@@ -6476,13 +6472,9 @@ class ProcessTransport {
       });
       this.childStdin = this.child.stdin;
       this.childStdout = this.child.stdout;
-      if (typeof prompt === "string") {
-        this.childStdin.end();
-        this.childStdin = undefined;
-      }
       if (env.DEBUG || stderr) {
         this.child.stderr.on("data", (data) => {
-          this.logDebug(`Claude Code stderr: ${data.toString()}`);
+          this.logForDebugging(`Claude Code stderr: ${data.toString()}`);
           if (stderr) {
             stderr(data.toString());
           }
@@ -6503,7 +6495,7 @@ class ProcessTransport {
           this.exitError = new AbortError("Claude Code process aborted by user");
         } else {
           this.exitError = new Error(`Failed to spawn Claude Code process: ${error.message}`);
-          this.logDebug(this.exitError.message);
+          this.logForDebugging(this.exitError.message);
         }
       });
       this.child.on("close", (code, signal) => {
@@ -6514,7 +6506,7 @@ class ProcessTransport {
           const error = this.getProcessExitError(code, signal);
           if (error) {
             this.exitError = error;
-            this.logDebug(error.message);
+            this.logForDebugging(error.message);
           }
         }
       });
@@ -6532,7 +6524,7 @@ class ProcessTransport {
     }
     return;
   }
-  logDebug(message) {
+  logForDebugging(message) {
     if (process.env.DEBUG) {
       process.stderr.write(`${message}
 `);
@@ -6790,7 +6782,7 @@ class SdkControlServerTransport {
 // src/core/Query.ts
 class Query {
   transport;
-  isStreamingMode;
+  isSingleUserTurn;
   canUseTool;
   hooks;
   abortController;
@@ -6804,9 +6796,11 @@ class Query {
   nextCallbackId = 0;
   sdkMcpTransports = new Map;
   pendingMcpResponses = new Map;
-  constructor(transport, isStreamingMode, canUseTool, hooks, abortController, sdkMcpServers = new Map) {
+  firstResultReceivedPromise;
+  firstResultReceivedResolve;
+  constructor(transport, isSingleUserTurn, canUseTool, hooks, abortController, sdkMcpServers = new Map) {
     this.transport = transport;
-    this.isStreamingMode = isStreamingMode;
+    this.isSingleUserTurn = isSingleUserTurn;
     this.canUseTool = canUseTool;
     this.hooks = hooks;
     this.abortController = abortController;
@@ -6816,10 +6810,12 @@ class Query {
       server.connect(sdkTransport);
     }
     this.sdkMessages = this.readSdkMessages();
+    this.firstResultReceivedPromise = new Promise((resolve) => {
+      this.firstResultReceivedResolve = resolve;
+    });
     this.readMessages();
-    if (this.isStreamingMode) {
-      this.initialization = this.initialize();
-    }
+    this.initialization = this.initialize();
+    this.initialization.catch(() => {});
   }
   setError(error) {
     this.inputStream.error(error);
@@ -6869,6 +6865,16 @@ class Query {
         } else if (message.type === "control_cancel_request") {
           this.handleControlCancelRequest(message);
           continue;
+        } else if (message.type === "keep_alive") {
+          continue;
+        }
+        if (message.type === "result") {
+          if (this.firstResultReceivedResolve) {
+            this.firstResultReceivedResolve();
+          }
+          if (this.isSingleUserTurn) {
+            this.transport.endInput();
+          }
         }
         this.inputStream.enqueue(message);
       }
@@ -6999,9 +7005,6 @@ class Query {
     });
   }
   request(request) {
-    if (!this.isStreamingMode) {
-      throw new Error(`${request.subtype} requires --input-format stream-json`);
-    }
     const requestId = Math.random().toString(36).substring(2, 15);
     const sdkRequest = {
       request_id: requestId,
@@ -7021,16 +7024,17 @@ class Query {
     });
   }
   async supportedCommands() {
-    if (!this.isStreamingMode || !this.initialization) {
-      throw new Error("supportedCommands is only supported in streaming mode");
-    }
     return (await this.initialization).commands;
   }
   async supportedModels() {
-    if (!this.isStreamingMode || !this.initialization) {
-      throw new Error("supportedModels is only supported in streaming mode");
-    }
     return (await this.initialization).models;
+  }
+  async mcpServerStatus() {
+    const response = await this.request({
+      subtype: "mcp_status"
+    });
+    const mcpStatusResponse = response.response;
+    return mcpStatusResponse.mcpServers;
   }
   async streamInput(stream) {
     try {
@@ -7039,6 +7043,25 @@ class Query {
           break;
         await Promise.resolve(this.transport.write(JSON.stringify(message) + `
 `));
+      }
+      if (this.sdkMcpTransports.size > 0 && this.firstResultReceivedPromise) {
+        const STREAM_CLOSE_TIMEOUT = 1e4;
+        let timeoutId;
+        await Promise.race([
+          this.firstResultReceivedPromise.then(() => {
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
+          }),
+          new Promise((resolve) => {
+            timeoutId = setTimeout(() => {
+              resolve();
+            }, STREAM_CLOSE_TIMEOUT);
+          })
+        ]);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
       this.transport.endInput();
     } catch (error) {
@@ -14045,9 +14068,8 @@ function query({
       }
     }
   }
-  const isStreamingMode = typeof prompt !== "string";
+  const isSingleUserTurn = typeof prompt === "string";
   const transport = new ProcessTransport({
-    prompt,
     abortController,
     additionalDirectories,
     cwd,
@@ -14074,8 +14096,19 @@ function query({
     hooks: !!hooks,
     includePartialMessages
   });
-  const query2 = new Query(transport, isStreamingMode, canUseTool, hooks, abortController, sdkMcpServers);
-  if (typeof prompt !== "string") {
+  const query2 = new Query(transport, isSingleUserTurn, canUseTool, hooks, abortController, sdkMcpServers);
+  if (typeof prompt === "string") {
+    transport.write(JSON.stringify({
+      type: "user",
+      session_id: "",
+      message: {
+        role: "user",
+        content: [{ type: "text", text: prompt }]
+      },
+      parent_tool_use_id: null
+    }) + `
+`);
+  } else {
     query2.streamInput(prompt);
   }
   return query2;
