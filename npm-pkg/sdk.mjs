@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.123
+// Version: 1.0.124
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6443,6 +6443,9 @@ class ProcessTransport {
       }
       for (const dir of additionalDirectories) {
         args.push("--add-dir", dir);
+      }
+      if (this.options.forkSession) {
+        args.push("--fork-session");
       }
       for (const [flag, value] of Object.entries(extraArgs)) {
         if (value === null) {
@@ -14028,6 +14031,7 @@ function query({
     executable = isRunningWithBun() ? "bun" : "node",
     executableArgs = [],
     extraArgs = {},
+    forkSession,
     fallbackModel,
     hooks,
     includePartialMessages,
@@ -14078,6 +14082,7 @@ function query({
     extraArgs,
     pathToClaudeCodeExecutable,
     env,
+    forkSession,
     stderr,
     customSystemPrompt,
     appendSystemPrompt,
