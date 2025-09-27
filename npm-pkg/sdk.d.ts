@@ -233,7 +233,7 @@ export type Options = {
     fallbackModel?: string;
     /**
      * When true resumed sessions will fork to a new session ID rather than
-     * continuing the previous session.
+     * continuing the previous session. Use with --resume.
      */
     forkSession?: boolean;
     hooks?: Partial<Record<HookEvent, HookCallbackMatcher[]>>;
@@ -246,10 +246,17 @@ export type Options = {
     permissionMode?: PermissionMode;
     permissionPromptToolName?: string;
     resume?: string;
+    /**
+     * When resuming, only resume messages up to and including the assistant
+     * message with this message.id. Use with --resume.
+     * This allows you to resume from a specific point in the conversation.
+     * The message ID is expected to be from SDKAssistantMessage.message.id.
+     */
+    resumeSessionAt?: string;
     stderr?: (data: string) => void;
     strictMcpConfig?: boolean;
 };
-export type PermissionMode = 'default' | 'acceptEdits' | 'sandboxBashMode' | 'bypassPermissions' | 'plan';
+export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
 export type SlashCommand = {
     name: string;
     description: string;
@@ -328,6 +335,7 @@ export type SDKResultMessage = (SDKMessageBase & {
 export type SDKSystemMessage = SDKMessageBase & {
     type: 'system';
     subtype: 'init';
+    agents?: string[];
     apiKeySource: ApiKeySource;
     cwd: string;
     tools: string[];

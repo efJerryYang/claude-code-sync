@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.124
+// Version: 1.0.127
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6365,6 +6365,7 @@ class ProcessTransport {
     try {
       const {
         additionalDirectories = [],
+        agents,
         cwd,
         executable = isRunningWithBun() ? "bun" : "node",
         executableArgs = [],
@@ -6381,6 +6382,7 @@ class ProcessTransport {
         permissionPromptToolName,
         continueConversation,
         resume,
+        settingSources,
         allowedTools = [],
         disallowedTools = [],
         mcpServers,
@@ -6426,6 +6428,12 @@ class ProcessTransport {
       if (mcpServers && Object.keys(mcpServers).length > 0) {
         args.push("--mcp-config", JSON.stringify({ mcpServers }));
       }
+      if (agents && Object.keys(agents).length > 0) {
+        args.push("--agents", JSON.stringify(agents));
+      }
+      if (settingSources && settingSources.length > 0) {
+        args.push("--setting-sources", settingSources.join(","));
+      }
       if (strictMcpConfig) {
         args.push("--strict-mcp-config");
       }
@@ -6446,6 +6454,9 @@ class ProcessTransport {
       }
       if (this.options.forkSession) {
         args.push("--fork-session");
+      }
+      if (this.options.resumeSessionAt) {
+        args.push("--resume-session-at", this.options.resumeSessionAt);
       }
       for (const [flag, value] of Object.entries(extraArgs)) {
         if (value === null) {
@@ -7132,6 +7143,115 @@ class Query {
       }, 30000);
     });
   }
+}
+
+// src/core/sharedQuery.ts
+function createSharedQuery({
+  prompt,
+  options: {
+    abortController = createAbortController(),
+    additionalDirectories = [],
+    agents,
+    allowedTools = [],
+    appendSystemPrompt,
+    canUseTool,
+    continue: continueConversation,
+    customSystemPrompt,
+    cwd,
+    disallowedTools = [],
+    env,
+    executable = isRunningWithBun() ? "bun" : "node",
+    executableArgs = [],
+    extraArgs = {},
+    fallbackModel,
+    forkSession,
+    hooks,
+    includePartialMessages,
+    maxTurns,
+    mcpServers,
+    model,
+    pathToClaudeCodeExecutable,
+    permissionMode = "default",
+    permissionPromptToolName,
+    resume,
+    resumeSessionAt,
+    settingSources,
+    stderr,
+    strictMcpConfig
+  } = {}
+}) {
+  if (!env) {
+    env = { ...process.env };
+  }
+  if (!env.CLAUDE_CODE_ENTRYPOINT) {
+    env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
+  }
+  if (!pathToClaudeCodeExecutable) {
+    throw new Error("pathToClaudeCodeExecutable is required");
+  }
+  const allMcpServers = {};
+  const sdkMcpServers = new Map;
+  if (mcpServers) {
+    for (const [name, config] of Object.entries(mcpServers)) {
+      if (config.type === "sdk" && "instance" in config) {
+        sdkMcpServers.set(name, config.instance);
+        allMcpServers[name] = {
+          type: "sdk",
+          name
+        };
+      } else {
+        allMcpServers[name] = config;
+      }
+    }
+  }
+  const isSingleUserTurn = typeof prompt === "string";
+  const transport = new ProcessTransport({
+    abortController,
+    additionalDirectories,
+    agents,
+    cwd,
+    executable,
+    executableArgs,
+    extraArgs,
+    pathToClaudeCodeExecutable,
+    env,
+    forkSession,
+    stderr,
+    customSystemPrompt,
+    appendSystemPrompt,
+    maxTurns,
+    model,
+    fallbackModel,
+    permissionMode,
+    permissionPromptToolName,
+    continueConversation,
+    resume,
+    resumeSessionAt,
+    settingSources,
+    allowedTools,
+    disallowedTools,
+    mcpServers: allMcpServers,
+    strictMcpConfig,
+    canUseTool: !!canUseTool,
+    hooks: !!hooks,
+    includePartialMessages
+  });
+  const query = new Query(transport, isSingleUserTurn, canUseTool, hooks, abortController, sdkMcpServers);
+  if (typeof prompt === "string") {
+    transport.write(JSON.stringify({
+      type: "user",
+      session_id: "",
+      message: {
+        role: "user",
+        content: [{ type: "text", text: prompt }]
+      },
+      parent_tool_use_id: null
+    }) + `
+`);
+  } else {
+    query.streamInput(prompt);
+  }
+  return query;
 }
 
 // node_modules/zod/v3/external.js
@@ -14017,106 +14137,18 @@ function createSdkMcpServer(options) {
 // src/entrypoints/sdk.ts
 function query({
   prompt,
-  options: {
-    abortController = createAbortController(),
-    additionalDirectories = [],
-    allowedTools = [],
-    appendSystemPrompt,
-    canUseTool,
-    continue: continueConversation,
-    customSystemPrompt,
-    cwd,
-    disallowedTools = [],
-    env,
-    executable = isRunningWithBun() ? "bun" : "node",
-    executableArgs = [],
-    extraArgs = {},
-    forkSession,
-    fallbackModel,
-    hooks,
-    includePartialMessages,
-    maxTurns,
-    mcpServers,
-    model,
-    pathToClaudeCodeExecutable,
-    permissionMode = "default",
-    permissionPromptToolName,
-    resume,
-    stderr,
-    strictMcpConfig
-  } = {}
+  options
 }) {
-  if (!env) {
-    env = { ...process.env };
-  }
-  if (!env.CLAUDE_CODE_ENTRYPOINT) {
-    env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
-  }
-  if (pathToClaudeCodeExecutable === undefined) {
+  let pathToClaudeCodeExecutable = options?.pathToClaudeCodeExecutable;
+  if (!pathToClaudeCodeExecutable) {
     const filename = fileURLToPath(import.meta.url);
     const dirname = join(filename, "..");
     pathToClaudeCodeExecutable = join(dirname, "cli.js");
   }
-  const allMcpServers = {};
-  const sdkMcpServers = new Map;
-  if (mcpServers) {
-    for (const [name, config] of Object.entries(mcpServers)) {
-      if (config.type === "sdk") {
-        sdkMcpServers.set(name, config.instance);
-        allMcpServers[name] = {
-          type: "sdk",
-          name
-        };
-      } else {
-        allMcpServers[name] = config;
-      }
-    }
-  }
-  const isSingleUserTurn = typeof prompt === "string";
-  const transport = new ProcessTransport({
-    abortController,
-    additionalDirectories,
-    cwd,
-    executable,
-    executableArgs,
-    extraArgs,
-    pathToClaudeCodeExecutable,
-    env,
-    forkSession,
-    stderr,
-    customSystemPrompt,
-    appendSystemPrompt,
-    maxTurns,
-    model,
-    fallbackModel,
-    permissionMode,
-    permissionPromptToolName,
-    continueConversation,
-    resume,
-    allowedTools,
-    disallowedTools,
-    mcpServers,
-    strictMcpConfig,
-    canUseTool: !!canUseTool,
-    hooks: !!hooks,
-    includePartialMessages
+  return createSharedQuery({
+    prompt,
+    options: { ...options, pathToClaudeCodeExecutable }
   });
-  const query2 = new Query(transport, isSingleUserTurn, canUseTool, hooks, abortController, sdkMcpServers);
-  if (typeof prompt === "string") {
-    transport.write(JSON.stringify({
-      type: "user",
-      session_id: "",
-      message: {
-        role: "user",
-        content: [{ type: "text", text: prompt }]
-      },
-      parent_tool_use_id: null
-    }) + `
-`);
-  } else {
-    query2.streamInput(prompt);
-  }
-  return query2;
 }
 export {
   tool,

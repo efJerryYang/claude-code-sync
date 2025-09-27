@@ -71,9 +71,9 @@ export interface BashInput {
    */
   run_in_background?: boolean;
   /**
-   * Set this to true to run the bash tool in a sandbox.
+   * Set this to true to dangerously override sandbox mode and run commands without sandboxing.
    */
-  sandbox?: boolean;
+  dangerouslyOverrideSandbox?: boolean;
 }
 export interface BashOutputInput {
   /**
