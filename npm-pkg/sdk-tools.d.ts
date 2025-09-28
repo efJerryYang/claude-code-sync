@@ -70,10 +70,6 @@ export interface BashInput {
    * Set to true to run this command in the background. Use BashOutput to read the output later.
    */
   run_in_background?: boolean;
-  /**
-   * Set this to true to dangerously override sandbox mode and run commands without sandboxing.
-   */
-  dangerouslyOverrideSandbox?: boolean;
 }
 export interface BashOutputInput {
   /**

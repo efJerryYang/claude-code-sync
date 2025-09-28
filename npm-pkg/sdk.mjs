@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 1.0.127
+// Version: 1.0.128
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6220,7 +6220,7 @@ import { createInterface } from "readline";
 
 // src/utils/fsOperations.ts
 import * as fs from "fs";
-import { stat as statPromise } from "fs/promises";
+import { stat as statPromise, open } from "fs/promises";
 var NodeFsOperations = {
   accessSync(fsPath, mode) {
     fs.accessSync(fsPath, mode);
@@ -6397,7 +6397,7 @@ class ProcessTransport {
         "--input-format",
         "stream-json"
       ];
-      if (customSystemPrompt)
+      if (typeof customSystemPrompt === "string")
         args.push("--system-prompt", customSystemPrompt);
       if (appendSystemPrompt)
         args.push("--append-system-prompt", appendSystemPrompt);
@@ -6431,13 +6431,13 @@ class ProcessTransport {
       if (agents && Object.keys(agents).length > 0) {
         args.push("--agents", JSON.stringify(agents));
       }
-      if (settingSources && settingSources.length > 0) {
+      if (settingSources) {
         args.push("--setting-sources", settingSources.join(","));
       }
       if (strictMcpConfig) {
         args.push("--strict-mcp-config");
       }
-      if (permissionMode && permissionMode !== "default") {
+      if (permissionMode) {
         args.push("--permission-mode", permissionMode);
       }
       if (fallbackModel) {
