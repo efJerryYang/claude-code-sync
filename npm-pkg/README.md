@@ -22,7 +22,11 @@ npm install -g @anthropic-ai/claude-code
 
 ## Reporting Bugs
 
-We welcome feedback during this beta period. Use the `/bug` command to report issues directly within Claude Code, or file a [GitHub issue](https://github.com/anthropics/claude-code/issues).
+We welcome your feedback. Use the `/bug` command to report issues directly within Claude Code, or file a [GitHub issue](https://github.com/anthropics/claude-code/issues).
+
+## Connect on Discord
+
+Join the [Claude Developers Discord](https://anthropic.com/discord) to connect with other developers using Claude Code. Get help, share feedback, and discuss your projects with the community.
 
 ## Data collection, usage, and retention
 
@@ -30,9 +34,7 @@ When you use Claude Code, we collect feedback, which includes usage data (such a
 
 ### How we use your data
 
-We may use feedback to improve our products and services, but we will not train generative models using your feedback from Claude Code. Given their potentially sensitive nature, we store user feedback transcripts for only 30 days.
-
-If you choose to send us feedback about Claude Code, such as transcripts of your usage, Anthropic may use that feedback to debug related issues and improve Claude Code's functionality (e.g., to reduce the risk of similar bugs occurring in the future).
+See our [data usage policies](https://docs.claude.com/en/docs/claude-code/data-usage).
 
 ### Privacy safeguards
 

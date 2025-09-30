@@ -14,7 +14,6 @@ export type ToolInputSchemas =
   | BashOutputInput
   | ExitPlanModeInput
   | FileEditInput
-  | FileMultiEditInput
   | FileReadInput
   | FileWriteInput
   | GlobInput
@@ -104,47 +103,6 @@ export interface FileEditInput {
    * Replace all occurences of old_string (default false)
    */
   replace_all?: boolean;
-}
-export interface FileMultiEditInput {
-  /**
-   * The absolute path to the file to modify
-   */
-  file_path: string;
-  /**
-   * Array of edit operations to perform sequentially on the file
-   *
-   * @minItems 1
-   */
-  edits: [
-    {
-      /**
-       * The text to replace
-       */
-      old_string: string;
-      /**
-       * The text to replace it with
-       */
-      new_string: string;
-      /**
-       * Replace all occurences of old_string (default false).
-       */
-      replace_all?: boolean;
-    },
-    ...{
-      /**
-       * The text to replace
-       */
-      old_string: string;
-      /**
-       * The text to replace it with
-       */
-      new_string: string;
-      /**
-       * Replace all occurences of old_string (default false).
-       */
-      replace_all?: boolean;
-    }[]
-  ];
 }
 export interface FileReadInput {
   /**
