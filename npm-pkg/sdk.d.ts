@@ -293,7 +293,13 @@ export type SDKUserMessage = SDKUserMessageContent & {
     uuid?: UUID;
     session_id: string;
 };
-export type SDKUserMessageReplay = SDKMessageBase & SDKUserMessageContent;
+export type SDKUserMessageReplay = SDKMessageBase & SDKUserMessageContent & {
+    /**
+     * True if this is a replay/acknowledgment of a user message that was already
+     * added to the messages array. Used internally to prevent duplicate messages.
+     */
+    isReplay: true;
+};
 export type SDKAssistantMessage = SDKMessageBase & {
     type: 'assistant';
     message: APIAssistantMessage;
