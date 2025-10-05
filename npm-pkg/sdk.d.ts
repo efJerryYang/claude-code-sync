@@ -382,19 +382,9 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
     mcpServerStatus(): Promise<McpServerStatus[]>;
 }
 /**
- * Query Claude Code
- *
- * Behavior:
- * - Yields a message at a time
- * - Uses the tools and commands you give it
- *
- * Usage:
- * ```ts
- * const response = query({ prompt: "Help me write a function", options: {} })
- * for await (const message of response) {
- *   console.log(message)
- * }
- * ```
+ * @deprecated The Claude Code SDK is now the Claude Agent SDK!
+ * Please install and use @anthropic-ai/claude-agent-sdk instead.
+ * See https://docs.claude.com/en/docs/claude-code/sdk/migration-guide for migration instructions.
  */
 export declare function query({ prompt, options, }: {
     prompt: string | AsyncIterable<SDKUserMessage>;

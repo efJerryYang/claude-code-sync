@@ -2,7 +2,7 @@
 
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 2.0.5
+// Version: 2.0.8
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6375,6 +6375,7 @@ class ProcessTransport {
         stderr,
         customSystemPrompt,
         appendSystemPrompt,
+        maxThinkingTokens,
         maxTurns,
         model,
         fallbackModel,
@@ -6401,6 +6402,9 @@ class ProcessTransport {
         args.push("--system-prompt", customSystemPrompt);
       if (appendSystemPrompt)
         args.push("--append-system-prompt", appendSystemPrompt);
+      if (maxThinkingTokens !== undefined) {
+        args.push("--max-thinking-tokens", maxThinkingTokens.toString());
+      }
       if (maxTurns)
         args.push("--max-turns", maxTurns.toString());
       if (model)
@@ -7167,6 +7171,7 @@ function createSharedQuery({
     forkSession,
     hooks,
     includePartialMessages,
+    maxThinkingTokens,
     maxTurns,
     mcpServers,
     model,
@@ -7219,6 +7224,7 @@ function createSharedQuery({
     stderr,
     customSystemPrompt,
     appendSystemPrompt,
+    maxThinkingTokens,
     maxTurns,
     model,
     fallbackModel,
@@ -14139,6 +14145,7 @@ function query({
   prompt,
   options
 }) {
+  console.warn("The Claude Code SDK is now the Claude Agent SDK! " + "Please install and use @anthropic-ai/claude-agent-sdk instead. " + "See https://docs.claude.com/en/docs/claude-code/sdk/migration-guide for migration instructions.");
   let pathToClaudeCodeExecutable = options?.pathToClaudeCodeExecutable;
   if (!pathToClaudeCodeExecutable) {
     const filename = fileURLToPath(import.meta.url);
