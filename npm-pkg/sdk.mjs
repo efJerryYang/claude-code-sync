@@ -1,12 +1,10 @@
 #!/usr/bin/env node
-
 // (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
 
-// Version: 2.0.8
+// Version: 2.0.9
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
-
 var __create = Object.create;
 var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
@@ -6222,14 +6220,8 @@ import { createInterface } from "readline";
 import * as fs from "fs";
 import { stat as statPromise, open } from "fs/promises";
 var NodeFsOperations = {
-  accessSync(fsPath, mode) {
-    fs.accessSync(fsPath, mode);
-  },
   cwd() {
     return process.cwd();
-  },
-  chmodSync(fsPath, mode) {
-    fs.chmodSync(fsPath, mode);
   },
   existsSync(fsPath) {
     return fs.existsSync(fsPath);
