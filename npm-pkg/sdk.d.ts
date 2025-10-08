@@ -204,6 +204,7 @@ export type SyncHookJSONOutput = {
         hookEventName: 'PreToolUse';
         permissionDecision?: 'allow' | 'deny' | 'ask';
         permissionDecisionReason?: string;
+        updatedInput?: Record<string, unknown>;
     } | {
         hookEventName: 'UserPromptSubmit';
         additionalContext?: string;
