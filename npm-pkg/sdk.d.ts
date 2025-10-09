@@ -268,6 +268,14 @@ export type ModelInfo = {
     displayName: string;
     description: string;
 };
+/** Information about the logged in user's account. */
+export type AccountInfo = {
+    email?: string;
+    organization?: string;
+    subscriptionType?: string;
+    tokenSource?: string;
+    apiKeySource?: string;
+};
 export type McpServerStatus = {
     name: string;
     status: 'connected' | 'failed' | 'needs-auth' | 'pending';
@@ -381,6 +389,7 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
     supportedCommands(): Promise<SlashCommand[]>;
     supportedModels(): Promise<ModelInfo[]>;
     mcpServerStatus(): Promise<McpServerStatus[]>;
+    accountInfo(): Promise<AccountInfo>;
 }
 /**
  * @deprecated The Claude Code SDK is now the Claude Agent SDK!
