@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// (c) Anthropic PBC. All rights reserved. Use is subject to Anthropic's Commercial Terms of Service (https://www.anthropic.com/legal/commercial-terms).
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://docs.claude.com/en/docs/claude-code/legal-and-compliance.
 
-// Version: 2.0.11
+// Version: 2.0.13
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -7058,7 +7058,7 @@ class Query {
 `));
       }
       if (this.sdkMcpTransports.size > 0 && this.firstResultReceivedPromise) {
-        const STREAM_CLOSE_TIMEOUT = 1e4;
+        const STREAM_CLOSE_TIMEOUT = 60000;
         let timeoutId;
         await Promise.race([
           this.firstResultReceivedPromise.then(() => {
@@ -14140,7 +14140,7 @@ function query({
   prompt,
   options
 }) {
-  console.warn("The Claude Code SDK is now the Claude Agent SDK! " + "Please install and use @anthropic-ai/claude-agent-sdk instead. " + "See https://docs.claude.com/en/docs/claude-code/sdk/migration-guide for migration instructions.");
+  console.warn("The Claude Code SDK is now the Claude Agent SDK! " + "Please install and use @anthropic-ai/claude-agent-sdk instead. " + "This SDK entrypoint will be going away on October 21. " + "See https://docs.claude.com/en/docs/claude-code/sdk/migration-guide for migration instructions.");
   let pathToClaudeCodeExecutable = options?.pathToClaudeCodeExecutable;
   if (!pathToClaudeCodeExecutable) {
     const filename = fileURLToPath(import.meta.url);

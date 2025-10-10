@@ -394,6 +394,7 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
 /**
  * @deprecated The Claude Code SDK is now the Claude Agent SDK!
  * Please install and use @anthropic-ai/claude-agent-sdk instead.
+ * This SDK entrypoint will be going away on October 21.
  * See https://docs.claude.com/en/docs/claude-code/sdk/migration-guide for migration instructions.
  */
 export declare function query({ prompt, options, }: {
