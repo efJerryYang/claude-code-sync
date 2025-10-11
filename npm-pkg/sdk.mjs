@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://docs.claude.com/en/docs/claude-code/legal-and-compliance.
 
-// Version: 2.0.13
+// Version: 2.0.14
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -34,8 +34,8 @@ var __export = (target, all) => {
 
 // node_modules/uri-js/dist/es5/uri.all.js
 var require_uri_all = __commonJS((exports, module) => {
-  (function(global, factory) {
-    typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : factory(global.URI = global.URI || {});
+  (function(global2, factory) {
+    typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : factory(global2.URI = global2.URI || {});
   })(exports, function(exports2) {
     function merge() {
       for (var _len = arguments.length, sets = Array(_len), _key = 0;_key < _len; _key++) {
@@ -1400,75 +1400,75 @@ var require_resolve = __commonJS((exports, module) => {
   resolve.ids = resolveIds;
   resolve.inlineRef = inlineRef;
   resolve.schema = resolveSchema;
-  function resolve(compile, root, ref) {
+  function resolve(compile, root2, ref) {
     var refVal = this._refs[ref];
     if (typeof refVal == "string") {
       if (this._refs[refVal])
         refVal = this._refs[refVal];
       else
-        return resolve.call(this, compile, root, refVal);
+        return resolve.call(this, compile, root2, refVal);
     }
     refVal = refVal || this._schemas[ref];
     if (refVal instanceof SchemaObject) {
       return inlineRef(refVal.schema, this._opts.inlineRefs) ? refVal.schema : refVal.validate || this._compile(refVal);
     }
-    var res = resolveSchema.call(this, root, ref);
+    var res = resolveSchema.call(this, root2, ref);
     var schema, v, baseId;
     if (res) {
       schema = res.schema;
-      root = res.root;
+      root2 = res.root;
       baseId = res.baseId;
     }
     if (schema instanceof SchemaObject) {
-      v = schema.validate || compile.call(this, schema.schema, root, undefined, baseId);
+      v = schema.validate || compile.call(this, schema.schema, root2, undefined, baseId);
     } else if (schema !== undefined) {
-      v = inlineRef(schema, this._opts.inlineRefs) ? schema : compile.call(this, schema, root, undefined, baseId);
+      v = inlineRef(schema, this._opts.inlineRefs) ? schema : compile.call(this, schema, root2, undefined, baseId);
     }
     return v;
   }
-  function resolveSchema(root, ref) {
-    var p = URI.parse(ref), refPath = _getFullPath(p), baseId = getFullPath(this._getId(root.schema));
-    if (Object.keys(root.schema).length === 0 || refPath !== baseId) {
+  function resolveSchema(root2, ref) {
+    var p = URI.parse(ref), refPath = _getFullPath(p), baseId = getFullPath(this._getId(root2.schema));
+    if (Object.keys(root2.schema).length === 0 || refPath !== baseId) {
       var id = normalizeId(refPath);
       var refVal = this._refs[id];
       if (typeof refVal == "string") {
-        return resolveRecursive.call(this, root, refVal, p);
+        return resolveRecursive.call(this, root2, refVal, p);
       } else if (refVal instanceof SchemaObject) {
         if (!refVal.validate)
           this._compile(refVal);
-        root = refVal;
+        root2 = refVal;
       } else {
         refVal = this._schemas[id];
         if (refVal instanceof SchemaObject) {
           if (!refVal.validate)
             this._compile(refVal);
           if (id == normalizeId(ref))
-            return { schema: refVal, root, baseId };
-          root = refVal;
+            return { schema: refVal, root: root2, baseId };
+          root2 = refVal;
         } else {
           return;
         }
       }
-      if (!root.schema)
+      if (!root2.schema)
         return;
-      baseId = getFullPath(this._getId(root.schema));
+      baseId = getFullPath(this._getId(root2.schema));
     }
-    return getJsonPointer.call(this, p, baseId, root.schema, root);
+    return getJsonPointer.call(this, p, baseId, root2.schema, root2);
   }
-  function resolveRecursive(root, ref, parsedRef) {
-    var res = resolveSchema.call(this, root, ref);
+  function resolveRecursive(root2, ref, parsedRef) {
+    var res = resolveSchema.call(this, root2, ref);
     if (res) {
       var schema = res.schema;
       var baseId = res.baseId;
-      root = res.root;
+      root2 = res.root;
       var id = this._getId(schema);
       if (id)
         baseId = resolveUrl(baseId, id);
-      return getJsonPointer.call(this, parsedRef, baseId, schema, root);
+      return getJsonPointer.call(this, parsedRef, baseId, schema, root2);
     }
   }
   var PREVENT_SCOPE_CHANGE = util3.toHash(["properties", "patternProperties", "enum", "dependencies", "definitions"]);
-  function getJsonPointer(parsedRef, baseId, schema, root) {
+  function getJsonPointer(parsedRef, baseId, schema, root2) {
     parsedRef.fragment = parsedRef.fragment || "";
     if (parsedRef.fragment.slice(0, 1) != "/")
       return;
@@ -1487,18 +1487,18 @@ var require_resolve = __commonJS((exports, module) => {
             baseId = resolveUrl(baseId, id);
           if (schema.$ref) {
             var $ref = resolveUrl(baseId, schema.$ref);
-            var res = resolveSchema.call(this, root, $ref);
+            var res = resolveSchema.call(this, root2, $ref);
             if (res) {
               schema = res.schema;
-              root = res.root;
+              root2 = res.root;
               baseId = res.baseId;
             }
           }
         }
       }
     }
-    if (schema !== undefined && schema !== root.schema)
-      return { schema, root, baseId };
+    if (schema !== undefined && schema !== root2.schema)
+      return { schema, root: root2, baseId };
   }
   var SIMPLE_INLINED = util3.toHash([
     "type",
@@ -1593,20 +1593,20 @@ var require_resolve = __commonJS((exports, module) => {
     var baseIds = { "": schemaId };
     var fullPaths = { "": getFullPath(schemaId, false) };
     var localRefs = {};
-    var self = this;
+    var self2 = this;
     traverse(schema, { allKeys: true }, function(sch, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) {
       if (jsonPtr === "")
         return;
-      var id = self._getId(sch);
+      var id = self2._getId(sch);
       var baseId = baseIds[parentJsonPtr];
       var fullPath = fullPaths[parentJsonPtr] + "/" + parentKeyword;
       if (keyIndex !== undefined)
         fullPath += "/" + (typeof keyIndex == "number" ? keyIndex : util3.escapeFragment(keyIndex));
       if (typeof id == "string") {
         id = baseId = normalizeId(baseId ? URI.resolve(baseId, id) : id);
-        var refVal = self._refs[id];
+        var refVal = self2._refs[id];
         if (typeof refVal == "string")
-          refVal = self._refs[refVal];
+          refVal = self2._refs[refVal];
         if (refVal && refVal.schema) {
           if (!equal(sch, refVal.schema))
             throw new Error('id "' + id + '" resolves to more than one schema');
@@ -1616,7 +1616,7 @@ var require_resolve = __commonJS((exports, module) => {
               throw new Error('id "' + id + '" resolves to more than one schema');
             localRefs[id] = sch;
           } else {
-            self._refs[id] = fullPath;
+            self2._refs[id] = fullPath;
           }
         }
       }
@@ -2196,17 +2196,17 @@ var require_compile = __commonJS((exports, module) => {
   var equal = require_fast_deep_equal();
   var ValidationError = errorClasses.Validation;
   module.exports = compile;
-  function compile(schema, root, localRefs, baseId) {
-    var self = this, opts = this._opts, refVal = [undefined], refs = {}, patterns = [], patternsHash = {}, defaults = [], defaultsHash = {}, customRules = [];
-    root = root || { schema, refVal, refs };
-    var c = checkCompiling.call(this, schema, root, baseId);
+  function compile(schema, root2, localRefs, baseId) {
+    var self2 = this, opts = this._opts, refVal = [undefined], refs = {}, patterns = [], patternsHash = {}, defaults = [], defaultsHash = {}, customRules = [];
+    root2 = root2 || { schema, refVal, refs };
+    var c = checkCompiling.call(this, schema, root2, baseId);
     var compilation = this._compilations[c.index];
     if (c.compiling)
       return compilation.callValidate = callValidate;
     var formats = this._formats;
     var RULES = this.RULES;
     try {
-      var v = localCompile(schema, root, localRefs, baseId);
+      var v = localCompile(schema, root2, localRefs, baseId);
       compilation.validate = v;
       var cv = compilation.callValidate;
       if (cv) {
@@ -2221,7 +2221,7 @@ var require_compile = __commonJS((exports, module) => {
       }
       return v;
     } finally {
-      endCompiling.call(this, schema, root, baseId);
+      endCompiling.call(this, schema, root2, baseId);
     }
     function callValidate() {
       var validate = compilation.validate;
@@ -2231,8 +2231,8 @@ var require_compile = __commonJS((exports, module) => {
     }
     function localCompile(_schema, _root, localRefs2, baseId2) {
       var isRoot = !_root || _root && _root.schema == _schema;
-      if (_root.schema != root.schema)
-        return compile.call(self, _schema, _root, localRefs2, baseId2);
+      if (_root.schema != root2.schema)
+        return compile.call(self2, _schema, _root, localRefs2, baseId2);
       var $async = _schema.$async === true;
       var sourceCode = validateGenerator({
         isTop: true,
@@ -2254,8 +2254,8 @@ var require_compile = __commonJS((exports, module) => {
         useCustomRule,
         opts,
         formats,
-        logger: self.logger,
-        self
+        logger: self2.logger,
+        self: self2
       });
       sourceCode = vars(refVal, refValCode) + vars(patterns, patternCode) + vars(defaults, defaultCode) + vars(customRules, customRuleCode) + sourceCode;
       if (opts.processCode)
@@ -2263,10 +2263,10 @@ var require_compile = __commonJS((exports, module) => {
       var validate;
       try {
         var makeValidate = new Function("self", "RULES", "formats", "root", "refVal", "defaults", "customRules", "equal", "ucs2length", "ValidationError", sourceCode);
-        validate = makeValidate(self, RULES, formats, root, refVal, defaults, customRules, equal, ucs2length, ValidationError);
+        validate = makeValidate(self2, RULES, formats, root2, refVal, defaults, customRules, equal, ucs2length, ValidationError);
         refVal[0] = validate;
       } catch (e) {
-        self.logger.error("Error compiling schema, function code:", sourceCode);
+        self2.logger.error("Error compiling schema, function code:", sourceCode);
         throw e;
       }
       validate.schema = _schema;
@@ -2294,20 +2294,20 @@ var require_compile = __commonJS((exports, module) => {
         refCode = "refVal[" + refIndex + "]";
         return resolvedRef(_refVal, refCode);
       }
-      if (!isRoot && root.refs) {
-        var rootRefId = root.refs[ref];
+      if (!isRoot && root2.refs) {
+        var rootRefId = root2.refs[ref];
         if (rootRefId !== undefined) {
-          _refVal = root.refVal[rootRefId];
+          _refVal = root2.refVal[rootRefId];
           refCode = addLocalRef(ref, _refVal);
           return resolvedRef(_refVal, refCode);
         }
       }
       refCode = addLocalRef(ref);
-      var v2 = resolve.call(self, localCompile, root, ref);
+      var v2 = resolve.call(self2, localCompile, root2, ref);
       if (v2 === undefined) {
         var localSchema = localRefs && localRefs[ref];
         if (localSchema) {
-          v2 = resolve.inlineRef(localSchema, opts.inlineRefs) ? localSchema : compile.call(self, localSchema, root, localRefs, baseId2);
+          v2 = resolve.inlineRef(localSchema, opts.inlineRefs) ? localSchema : compile.call(self2, localSchema, root2, localRefs, baseId2);
         }
       }
       if (v2 === undefined) {
@@ -2361,7 +2361,7 @@ var require_compile = __commonJS((exports, module) => {
       }
     }
     function useCustomRule(rule, schema2, parentSchema, it) {
-      if (self._opts.validateSchema !== false) {
+      if (self2._opts.validateSchema !== false) {
         var deps = rule.definition.dependencies;
         if (deps && !deps.every(function(keyword) {
           return Object.prototype.hasOwnProperty.call(parentSchema, keyword);
@@ -2371,9 +2371,9 @@ var require_compile = __commonJS((exports, module) => {
         if (validateSchema) {
           var valid = validateSchema(schema2);
           if (!valid) {
-            var message = "keyword schema is invalid: " + self.errorsText(validateSchema.errors);
-            if (self._opts.validateSchema == "log")
-              self.logger.error(message);
+            var message = "keyword schema is invalid: " + self2.errorsText(validateSchema.errors);
+            if (self2._opts.validateSchema == "log")
+              self2.logger.error(message);
             else
               throw new Error(message);
           }
@@ -2382,13 +2382,13 @@ var require_compile = __commonJS((exports, module) => {
       var compile2 = rule.definition.compile, inline = rule.definition.inline, macro = rule.definition.macro;
       var validate;
       if (compile2) {
-        validate = compile2.call(self, schema2, parentSchema, it);
+        validate = compile2.call(self2, schema2, parentSchema, it);
       } else if (macro) {
-        validate = macro.call(self, schema2, parentSchema, it);
+        validate = macro.call(self2, schema2, parentSchema, it);
         if (opts.validateSchema !== false)
-          self.validateSchema(validate, true);
+          self2.validateSchema(validate, true);
       } else if (inline) {
-        validate = inline.call(self, it, rule.keyword, schema2, parentSchema);
+        validate = inline.call(self2, it, rule.keyword, schema2, parentSchema);
       } else {
         validate = rule.definition.validate;
         if (!validate)
@@ -2404,27 +2404,27 @@ var require_compile = __commonJS((exports, module) => {
       };
     }
   }
-  function checkCompiling(schema, root, baseId) {
-    var index = compIndex.call(this, schema, root, baseId);
+  function checkCompiling(schema, root2, baseId) {
+    var index = compIndex.call(this, schema, root2, baseId);
     if (index >= 0)
       return { index, compiling: true };
     index = this._compilations.length;
     this._compilations[index] = {
       schema,
-      root,
+      root: root2,
       baseId
     };
     return { index, compiling: false };
   }
-  function endCompiling(schema, root, baseId) {
-    var i = compIndex.call(this, schema, root, baseId);
+  function endCompiling(schema, root2, baseId) {
+    var i = compIndex.call(this, schema, root2, baseId);
     if (i >= 0)
       this._compilations.splice(i, 1);
   }
-  function compIndex(schema, root, baseId) {
+  function compIndex(schema, root2, baseId) {
     for (var i = 0;i < this._compilations.length; i++) {
       var c = this._compilations[i];
-      if (c.schema == schema && c.root == root && c.baseId == baseId)
+      if (c.schema == schema && c.root == root2 && c.baseId == baseId)
         return i;
     }
     return -1;
@@ -5210,7 +5210,7 @@ var require_async = __commonJS((exports, module) => {
   var MissingRefError = require_error_classes().MissingRef;
   module.exports = compileAsync;
   function compileAsync(schema, meta, callback) {
-    var self = this;
+    var self2 = this;
     if (typeof this._opts.loadSchema != "function")
       throw new Error("options.loadSchema should be a function");
     if (typeof meta == "function") {
@@ -5218,7 +5218,7 @@ var require_async = __commonJS((exports, module) => {
       meta = undefined;
     }
     var p = loadMetaSchemaOf(schema).then(function() {
-      var schemaObj = self._addSchema(schema, undefined, meta);
+      var schemaObj = self2._addSchema(schema, undefined, meta);
       return schemaObj.validate || _compileAsync(schemaObj);
     });
     if (callback) {
@@ -5229,11 +5229,11 @@ var require_async = __commonJS((exports, module) => {
     return p;
     function loadMetaSchemaOf(sch) {
       var $schema = sch.$schema;
-      return $schema && !self.getSchema($schema) ? compileAsync.call(self, { $ref: $schema }, true) : Promise.resolve();
+      return $schema && !self2.getSchema($schema) ? compileAsync.call(self2, { $ref: $schema }, true) : Promise.resolve();
     }
     function _compileAsync(schemaObj) {
       try {
-        return self._compile(schemaObj);
+        return self2._compile(schemaObj);
       } catch (e) {
         if (e instanceof MissingRefError)
           return loadMissingSchema(e);
@@ -5243,26 +5243,26 @@ var require_async = __commonJS((exports, module) => {
         var ref = e.missingSchema;
         if (added(ref))
           throw new Error("Schema " + ref + " is loaded but " + e.missingRef + " cannot be resolved");
-        var schemaPromise = self._loadingSchemas[ref];
+        var schemaPromise = self2._loadingSchemas[ref];
         if (!schemaPromise) {
-          schemaPromise = self._loadingSchemas[ref] = self._opts.loadSchema(ref);
+          schemaPromise = self2._loadingSchemas[ref] = self2._opts.loadSchema(ref);
           schemaPromise.then(removePromise, removePromise);
         }
         return schemaPromise.then(function(sch) {
           if (!added(ref)) {
             return loadMetaSchemaOf(sch).then(function() {
               if (!added(ref))
-                self.addSchema(sch, ref, undefined, meta);
+                self2.addSchema(sch, ref, undefined, meta);
             });
           }
         }).then(function() {
           return _compileAsync(schemaObj);
         });
         function removePromise() {
-          delete self._loadingSchemas[ref];
+          delete self2._loadingSchemas[ref];
         }
         function added(ref2) {
-          return self._refs[ref2] || self._schemas[ref2];
+          return self2._refs[ref2] || self2._schemas[ref2];
         }
       }
     }
@@ -5945,10 +5945,10 @@ var require_ajv = __commonJS((exports, module) => {
     }
     return valid;
   }
-  function defaultMeta(self) {
-    var meta = self._opts.meta;
-    self._opts.defaultMeta = typeof meta == "object" ? self._getId(meta) || meta : self.getSchema(META_SCHEMA_ID) ? META_SCHEMA_ID : undefined;
-    return self._opts.defaultMeta;
+  function defaultMeta(self2) {
+    var meta = self2._opts.meta;
+    self2._opts.defaultMeta = typeof meta == "object" ? self2._getId(meta) || meta : self2.getSchema(META_SCHEMA_ID) ? META_SCHEMA_ID : undefined;
+    return self2._opts.defaultMeta;
   }
   function getSchema(keyRef) {
     var schemaObj = _getSchemaObj(this, keyRef);
@@ -5961,25 +5961,25 @@ var require_ajv = __commonJS((exports, module) => {
         return _getSchemaFragment(this, keyRef);
     }
   }
-  function _getSchemaFragment(self, ref) {
-    var res = resolve.schema.call(self, { schema: {} }, ref);
+  function _getSchemaFragment(self2, ref) {
+    var res = resolve.schema.call(self2, { schema: {} }, ref);
     if (res) {
-      var { schema, root, baseId } = res;
-      var v = compileSchema.call(self, schema, root, undefined, baseId);
-      self._fragments[ref] = new SchemaObject({
+      var { schema, root: root2, baseId } = res;
+      var v = compileSchema.call(self2, schema, root2, undefined, baseId);
+      self2._fragments[ref] = new SchemaObject({
         ref,
         fragment: true,
         schema,
-        root,
+        root: root2,
         baseId,
         validate: v
       });
       return v;
     }
   }
-  function _getSchemaObj(self, keyRef) {
+  function _getSchemaObj(self2, keyRef) {
     keyRef = resolve.normalizeId(keyRef);
-    return self._schemas[keyRef] || self._refs[keyRef] || self._fragments[keyRef];
+    return self2._schemas[keyRef] || self2._refs[keyRef] || self2._fragments[keyRef];
   }
   function removeSchema(schemaKeyRef) {
     if (schemaKeyRef instanceof RegExp) {
@@ -6013,11 +6013,11 @@ var require_ajv = __commonJS((exports, module) => {
     }
     return this;
   }
-  function _removeAllSchemas(self, schemas, regex) {
+  function _removeAllSchemas(self2, schemas, regex) {
     for (var keyRef in schemas) {
       var schemaObj = schemas[keyRef];
       if (!schemaObj.meta && (!regex || regex.test(keyRef))) {
-        self._cache.del(schemaObj.cacheKey);
+        self2._cache.del(schemaObj.cacheKey);
         delete schemas[keyRef];
       }
     }
@@ -6053,12 +6053,12 @@ var require_ajv = __commonJS((exports, module) => {
       this.validateSchema(schema, true);
     return schemaObj;
   }
-  function _compile(schemaObj, root) {
+  function _compile(schemaObj, root2) {
     if (schemaObj.compiling) {
       schemaObj.validate = callValidate;
       callValidate.schema = schemaObj.schema;
       callValidate.errors = null;
-      callValidate.root = root ? root : callValidate;
+      callValidate.root = root2 ? root2 : callValidate;
       if (schemaObj.schema.$async === true)
         callValidate.$async = true;
       return callValidate;
@@ -6071,7 +6071,7 @@ var require_ajv = __commonJS((exports, module) => {
     }
     var v;
     try {
-      v = compileSchema.call(this, schemaObj.schema, root, schemaObj.localRefs);
+      v = compileSchema.call(this, schemaObj.schema, root2, schemaObj.localRefs);
     } catch (e) {
       delete schemaObj.validate;
       throw e;
@@ -6138,69 +6138,69 @@ var require_ajv = __commonJS((exports, module) => {
     this._formats[name] = format;
     return this;
   }
-  function addDefaultMetaSchema(self) {
+  function addDefaultMetaSchema(self2) {
     var $dataSchema;
-    if (self._opts.$data) {
+    if (self2._opts.$data) {
       $dataSchema = require_data2();
-      self.addMetaSchema($dataSchema, $dataSchema.$id, true);
+      self2.addMetaSchema($dataSchema, $dataSchema.$id, true);
     }
-    if (self._opts.meta === false)
+    if (self2._opts.meta === false)
       return;
     var metaSchema = require_json_schema_draft_07();
-    if (self._opts.$data)
+    if (self2._opts.$data)
       metaSchema = $dataMetaSchema(metaSchema, META_SUPPORT_DATA);
-    self.addMetaSchema(metaSchema, META_SCHEMA_ID, true);
-    self._refs["http://json-schema.org/schema"] = META_SCHEMA_ID;
+    self2.addMetaSchema(metaSchema, META_SCHEMA_ID, true);
+    self2._refs["http://json-schema.org/schema"] = META_SCHEMA_ID;
   }
-  function addInitialSchemas(self) {
-    var optsSchemas = self._opts.schemas;
+  function addInitialSchemas(self2) {
+    var optsSchemas = self2._opts.schemas;
     if (!optsSchemas)
       return;
     if (Array.isArray(optsSchemas))
-      self.addSchema(optsSchemas);
+      self2.addSchema(optsSchemas);
     else
       for (var key in optsSchemas)
-        self.addSchema(optsSchemas[key], key);
+        self2.addSchema(optsSchemas[key], key);
   }
-  function addInitialFormats(self) {
-    for (var name in self._opts.formats) {
-      var format = self._opts.formats[name];
-      self.addFormat(name, format);
+  function addInitialFormats(self2) {
+    for (var name in self2._opts.formats) {
+      var format = self2._opts.formats[name];
+      self2.addFormat(name, format);
     }
   }
-  function addInitialKeywords(self) {
-    for (var name in self._opts.keywords) {
-      var keyword = self._opts.keywords[name];
-      self.addKeyword(name, keyword);
+  function addInitialKeywords(self2) {
+    for (var name in self2._opts.keywords) {
+      var keyword = self2._opts.keywords[name];
+      self2.addKeyword(name, keyword);
     }
   }
-  function checkUnique(self, id) {
-    if (self._schemas[id] || self._refs[id])
+  function checkUnique(self2, id) {
+    if (self2._schemas[id] || self2._refs[id])
       throw new Error('schema with key or id "' + id + '" already exists');
   }
-  function getMetaSchemaOptions(self) {
-    var metaOpts = util3.copy(self._opts);
+  function getMetaSchemaOptions(self2) {
+    var metaOpts = util3.copy(self2._opts);
     for (var i = 0;i < META_IGNORE_OPTIONS.length; i++)
       delete metaOpts[META_IGNORE_OPTIONS[i]];
     return metaOpts;
   }
-  function setLogger(self) {
-    var logger = self._opts.logger;
+  function setLogger(self2) {
+    var logger = self2._opts.logger;
     if (logger === false) {
-      self.logger = { log: noop, warn: noop, error: noop };
+      self2.logger = { log: noop, warn: noop, error: noop };
     } else {
       if (logger === undefined)
         logger = console;
       if (!(typeof logger == "object" && logger.log && logger.warn && logger.error))
         throw new Error("logger must implement log, warn and error methods");
-      self.logger = logger;
+      self2.logger = logger;
     }
   }
   function noop() {}
 });
 
 // src/entrypoints/sdk.ts
-import { join } from "path";
+import { join as join3 } from "path";
 import { fileURLToPath } from "url";
 
 // src/utils/abortController.ts
@@ -6484,10 +6484,7 @@ class ProcessTransport {
       this.childStdout = this.child.stdout;
       if (env.DEBUG || stderr) {
         this.child.stderr.on("data", (data) => {
-          this.logForDebugging(`Claude Code stderr: ${data.toString()}`);
-          if (stderr) {
-            stderr(data.toString());
-          }
+          this.logForDebugging(data.toString());
         });
       }
       const cleanup = () => {
@@ -6789,6 +6786,668 @@ class SdkControlServerTransport {
   }
 }
 
+// node_modules/lodash-es/_freeGlobal.js
+var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
+var _freeGlobal_default = freeGlobal;
+
+// node_modules/lodash-es/_root.js
+var freeSelf = typeof self == "object" && self && self.Object === Object && self;
+var root = _freeGlobal_default || freeSelf || Function("return this")();
+var _root_default = root;
+
+// node_modules/lodash-es/_Symbol.js
+var Symbol2 = _root_default.Symbol;
+var _Symbol_default = Symbol2;
+
+// node_modules/lodash-es/_getRawTag.js
+var objectProto = Object.prototype;
+var hasOwnProperty = objectProto.hasOwnProperty;
+var nativeObjectToString = objectProto.toString;
+var symToStringTag = _Symbol_default ? _Symbol_default.toStringTag : undefined;
+function getRawTag(value) {
+  var isOwn = hasOwnProperty.call(value, symToStringTag), tag = value[symToStringTag];
+  try {
+    value[symToStringTag] = undefined;
+    var unmasked = true;
+  } catch (e) {}
+  var result = nativeObjectToString.call(value);
+  if (unmasked) {
+    if (isOwn) {
+      value[symToStringTag] = tag;
+    } else {
+      delete value[symToStringTag];
+    }
+  }
+  return result;
+}
+var _getRawTag_default = getRawTag;
+
+// node_modules/lodash-es/_objectToString.js
+var objectProto2 = Object.prototype;
+var nativeObjectToString2 = objectProto2.toString;
+function objectToString(value) {
+  return nativeObjectToString2.call(value);
+}
+var _objectToString_default = objectToString;
+
+// node_modules/lodash-es/_baseGetTag.js
+var nullTag = "[object Null]";
+var undefinedTag = "[object Undefined]";
+var symToStringTag2 = _Symbol_default ? _Symbol_default.toStringTag : undefined;
+function baseGetTag(value) {
+  if (value == null) {
+    return value === undefined ? undefinedTag : nullTag;
+  }
+  return symToStringTag2 && symToStringTag2 in Object(value) ? _getRawTag_default(value) : _objectToString_default(value);
+}
+var _baseGetTag_default = baseGetTag;
+
+// node_modules/lodash-es/isObject.js
+function isObject(value) {
+  var type = typeof value;
+  return value != null && (type == "object" || type == "function");
+}
+var isObject_default = isObject;
+
+// node_modules/lodash-es/isFunction.js
+var asyncTag = "[object AsyncFunction]";
+var funcTag = "[object Function]";
+var genTag = "[object GeneratorFunction]";
+var proxyTag = "[object Proxy]";
+function isFunction(value) {
+  if (!isObject_default(value)) {
+    return false;
+  }
+  var tag = _baseGetTag_default(value);
+  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
+}
+var isFunction_default = isFunction;
+
+// node_modules/lodash-es/_coreJsData.js
+var coreJsData = _root_default["__core-js_shared__"];
+var _coreJsData_default = coreJsData;
+
+// node_modules/lodash-es/_isMasked.js
+var maskSrcKey = function() {
+  var uid = /[^.]+$/.exec(_coreJsData_default && _coreJsData_default.keys && _coreJsData_default.keys.IE_PROTO || "");
+  return uid ? "Symbol(src)_1." + uid : "";
+}();
+function isMasked(func) {
+  return !!maskSrcKey && maskSrcKey in func;
+}
+var _isMasked_default = isMasked;
+
+// node_modules/lodash-es/_toSource.js
+var funcProto = Function.prototype;
+var funcToString = funcProto.toString;
+function toSource(func) {
+  if (func != null) {
+    try {
+      return funcToString.call(func);
+    } catch (e) {}
+    try {
+      return func + "";
+    } catch (e) {}
+  }
+  return "";
+}
+var _toSource_default = toSource;
+
+// node_modules/lodash-es/_baseIsNative.js
+var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+var reIsHostCtor = /^\[object .+?Constructor\]$/;
+var funcProto2 = Function.prototype;
+var objectProto3 = Object.prototype;
+var funcToString2 = funcProto2.toString;
+var hasOwnProperty2 = objectProto3.hasOwnProperty;
+var reIsNative = RegExp("^" + funcToString2.call(hasOwnProperty2).replace(reRegExpChar, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$");
+function baseIsNative(value) {
+  if (!isObject_default(value) || _isMasked_default(value)) {
+    return false;
+  }
+  var pattern = isFunction_default(value) ? reIsNative : reIsHostCtor;
+  return pattern.test(_toSource_default(value));
+}
+var _baseIsNative_default = baseIsNative;
+
+// node_modules/lodash-es/_getValue.js
+function getValue(object, key) {
+  return object == null ? undefined : object[key];
+}
+var _getValue_default = getValue;
+
+// node_modules/lodash-es/_getNative.js
+function getNative(object, key) {
+  var value = _getValue_default(object, key);
+  return _baseIsNative_default(value) ? value : undefined;
+}
+var _getNative_default = getNative;
+
+// node_modules/lodash-es/eq.js
+function eq(value, other) {
+  return value === other || value !== value && other !== other;
+}
+var eq_default = eq;
+
+// node_modules/lodash-es/_nativeCreate.js
+var nativeCreate = _getNative_default(Object, "create");
+var _nativeCreate_default = nativeCreate;
+
+// node_modules/lodash-es/_hashClear.js
+function hashClear() {
+  this.__data__ = _nativeCreate_default ? _nativeCreate_default(null) : {};
+  this.size = 0;
+}
+var _hashClear_default = hashClear;
+
+// node_modules/lodash-es/_hashDelete.js
+function hashDelete(key) {
+  var result = this.has(key) && delete this.__data__[key];
+  this.size -= result ? 1 : 0;
+  return result;
+}
+var _hashDelete_default = hashDelete;
+
+// node_modules/lodash-es/_hashGet.js
+var HASH_UNDEFINED = "__lodash_hash_undefined__";
+var objectProto4 = Object.prototype;
+var hasOwnProperty3 = objectProto4.hasOwnProperty;
+function hashGet(key) {
+  var data = this.__data__;
+  if (_nativeCreate_default) {
+    var result = data[key];
+    return result === HASH_UNDEFINED ? undefined : result;
+  }
+  return hasOwnProperty3.call(data, key) ? data[key] : undefined;
+}
+var _hashGet_default = hashGet;
+
+// node_modules/lodash-es/_hashHas.js
+var objectProto5 = Object.prototype;
+var hasOwnProperty4 = objectProto5.hasOwnProperty;
+function hashHas(key) {
+  var data = this.__data__;
+  return _nativeCreate_default ? data[key] !== undefined : hasOwnProperty4.call(data, key);
+}
+var _hashHas_default = hashHas;
+
+// node_modules/lodash-es/_hashSet.js
+var HASH_UNDEFINED2 = "__lodash_hash_undefined__";
+function hashSet(key, value) {
+  var data = this.__data__;
+  this.size += this.has(key) ? 0 : 1;
+  data[key] = _nativeCreate_default && value === undefined ? HASH_UNDEFINED2 : value;
+  return this;
+}
+var _hashSet_default = hashSet;
+
+// node_modules/lodash-es/_Hash.js
+function Hash(entries) {
+  var index = -1, length = entries == null ? 0 : entries.length;
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+Hash.prototype.clear = _hashClear_default;
+Hash.prototype["delete"] = _hashDelete_default;
+Hash.prototype.get = _hashGet_default;
+Hash.prototype.has = _hashHas_default;
+Hash.prototype.set = _hashSet_default;
+var _Hash_default = Hash;
+
+// node_modules/lodash-es/_listCacheClear.js
+function listCacheClear() {
+  this.__data__ = [];
+  this.size = 0;
+}
+var _listCacheClear_default = listCacheClear;
+
+// node_modules/lodash-es/_assocIndexOf.js
+function assocIndexOf(array, key) {
+  var length = array.length;
+  while (length--) {
+    if (eq_default(array[length][0], key)) {
+      return length;
+    }
+  }
+  return -1;
+}
+var _assocIndexOf_default = assocIndexOf;
+
+// node_modules/lodash-es/_listCacheDelete.js
+var arrayProto = Array.prototype;
+var splice = arrayProto.splice;
+function listCacheDelete(key) {
+  var data = this.__data__, index = _assocIndexOf_default(data, key);
+  if (index < 0) {
+    return false;
+  }
+  var lastIndex = data.length - 1;
+  if (index == lastIndex) {
+    data.pop();
+  } else {
+    splice.call(data, index, 1);
+  }
+  --this.size;
+  return true;
+}
+var _listCacheDelete_default = listCacheDelete;
+
+// node_modules/lodash-es/_listCacheGet.js
+function listCacheGet(key) {
+  var data = this.__data__, index = _assocIndexOf_default(data, key);
+  return index < 0 ? undefined : data[index][1];
+}
+var _listCacheGet_default = listCacheGet;
+
+// node_modules/lodash-es/_listCacheHas.js
+function listCacheHas(key) {
+  return _assocIndexOf_default(this.__data__, key) > -1;
+}
+var _listCacheHas_default = listCacheHas;
+
+// node_modules/lodash-es/_listCacheSet.js
+function listCacheSet(key, value) {
+  var data = this.__data__, index = _assocIndexOf_default(data, key);
+  if (index < 0) {
+    ++this.size;
+    data.push([key, value]);
+  } else {
+    data[index][1] = value;
+  }
+  return this;
+}
+var _listCacheSet_default = listCacheSet;
+
+// node_modules/lodash-es/_ListCache.js
+function ListCache(entries) {
+  var index = -1, length = entries == null ? 0 : entries.length;
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+ListCache.prototype.clear = _listCacheClear_default;
+ListCache.prototype["delete"] = _listCacheDelete_default;
+ListCache.prototype.get = _listCacheGet_default;
+ListCache.prototype.has = _listCacheHas_default;
+ListCache.prototype.set = _listCacheSet_default;
+var _ListCache_default = ListCache;
+
+// node_modules/lodash-es/_Map.js
+var Map2 = _getNative_default(_root_default, "Map");
+var _Map_default = Map2;
+
+// node_modules/lodash-es/_mapCacheClear.js
+function mapCacheClear() {
+  this.size = 0;
+  this.__data__ = {
+    hash: new _Hash_default,
+    map: new (_Map_default || _ListCache_default),
+    string: new _Hash_default
+  };
+}
+var _mapCacheClear_default = mapCacheClear;
+
+// node_modules/lodash-es/_isKeyable.js
+function isKeyable(value) {
+  var type = typeof value;
+  return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
+}
+var _isKeyable_default = isKeyable;
+
+// node_modules/lodash-es/_getMapData.js
+function getMapData(map, key) {
+  var data = map.__data__;
+  return _isKeyable_default(key) ? data[typeof key == "string" ? "string" : "hash"] : data.map;
+}
+var _getMapData_default = getMapData;
+
+// node_modules/lodash-es/_mapCacheDelete.js
+function mapCacheDelete(key) {
+  var result = _getMapData_default(this, key)["delete"](key);
+  this.size -= result ? 1 : 0;
+  return result;
+}
+var _mapCacheDelete_default = mapCacheDelete;
+
+// node_modules/lodash-es/_mapCacheGet.js
+function mapCacheGet(key) {
+  return _getMapData_default(this, key).get(key);
+}
+var _mapCacheGet_default = mapCacheGet;
+
+// node_modules/lodash-es/_mapCacheHas.js
+function mapCacheHas(key) {
+  return _getMapData_default(this, key).has(key);
+}
+var _mapCacheHas_default = mapCacheHas;
+
+// node_modules/lodash-es/_mapCacheSet.js
+function mapCacheSet(key, value) {
+  var data = _getMapData_default(this, key), size = data.size;
+  data.set(key, value);
+  this.size += data.size == size ? 0 : 1;
+  return this;
+}
+var _mapCacheSet_default = mapCacheSet;
+
+// node_modules/lodash-es/_MapCache.js
+function MapCache(entries) {
+  var index = -1, length = entries == null ? 0 : entries.length;
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+MapCache.prototype.clear = _mapCacheClear_default;
+MapCache.prototype["delete"] = _mapCacheDelete_default;
+MapCache.prototype.get = _mapCacheGet_default;
+MapCache.prototype.has = _mapCacheHas_default;
+MapCache.prototype.set = _mapCacheSet_default;
+var _MapCache_default = MapCache;
+
+// node_modules/lodash-es/memoize.js
+var FUNC_ERROR_TEXT = "Expected a function";
+function memoize(func, resolver) {
+  if (typeof func != "function" || resolver != null && typeof resolver != "function") {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  var memoized = function() {
+    var args = arguments, key = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    var result = func.apply(this, args);
+    memoized.cache = cache.set(key, result) || cache;
+    return result;
+  };
+  memoized.cache = new (memoize.Cache || _MapCache_default);
+  return memoized;
+}
+memoize.Cache = _MapCache_default;
+var memoize_default = memoize;
+// src/utils/process.ts
+var CHUNK_SIZE = 2000;
+function writeToStderr(data) {
+  for (let i = 0;i < data.length; i += CHUNK_SIZE) {
+    process.stderr.write(data.substring(i, i + CHUNK_SIZE));
+  }
+}
+
+// src/utils/debugFilter.ts
+var parseDebugFilter = memoize_default((filterString) => {
+  if (!filterString || filterString.trim() === "") {
+    return null;
+  }
+  const filters = filterString.split(",").map((f) => f.trim()).filter(Boolean);
+  if (filters.length === 0) {
+    return null;
+  }
+  const hasExclusive = filters.some((f) => f.startsWith("!"));
+  const hasInclusive = filters.some((f) => !f.startsWith("!"));
+  if (hasExclusive && hasInclusive) {
+    return null;
+  }
+  const cleanFilters = filters.map((f) => f.replace(/^!/, "").toLowerCase());
+  return {
+    include: hasExclusive ? [] : cleanFilters,
+    exclude: hasExclusive ? cleanFilters : [],
+    isExclusive: hasExclusive
+  };
+});
+function extractDebugCategories(message) {
+  const categories = [];
+  const mcpMatch = message.match(/^MCP server ["']([^"']+)["']/);
+  if (mcpMatch && mcpMatch[1]) {
+    categories.push("mcp");
+    categories.push(mcpMatch[1].toLowerCase());
+  } else {
+    const prefixMatch = message.match(/^([^:[]+):/);
+    if (prefixMatch && prefixMatch[1]) {
+      categories.push(prefixMatch[1].trim().toLowerCase());
+    }
+  }
+  const bracketMatch = message.match(/^\[([^\]]+)]/);
+  if (bracketMatch && bracketMatch[1]) {
+    categories.push(bracketMatch[1].trim().toLowerCase());
+  }
+  if (message.toLowerCase().includes("statsig event:")) {
+    categories.push("statsig");
+  }
+  const secondaryMatch = message.match(/:\s*([^:]+?)(?:\s+(?:type|mode|status|event))?:/);
+  if (secondaryMatch && secondaryMatch[1]) {
+    const secondary = secondaryMatch[1].trim().toLowerCase();
+    if (secondary.length < 30 && !secondary.includes(" ")) {
+      categories.push(secondary);
+    }
+  }
+  return Array.from(new Set(categories));
+}
+function shouldShowDebugCategories(categories, filter) {
+  if (!filter) {
+    return true;
+  }
+  if (categories.length === 0) {
+    return false;
+  }
+  if (filter.isExclusive) {
+    return !categories.some((cat) => filter.exclude.includes(cat));
+  } else {
+    return categories.some((cat) => filter.include.includes(cat));
+  }
+}
+function shouldShowDebugMessage(message, filter) {
+  if (!filter) {
+    return true;
+  }
+  const categories = extractDebugCategories(message);
+  return shouldShowDebugCategories(categories, filter);
+}
+
+// src/utils/envUtils.ts
+import { join } from "path";
+import { homedir } from "os";
+function getClaudeConfigHomeDir() {
+  return process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude");
+}
+function isEnvTruthy(envVar) {
+  if (!envVar)
+    return false;
+  if (typeof envVar === "boolean")
+    return envVar;
+  const normalizedValue = envVar.toLowerCase().trim();
+  return ["1", "true", "yes", "on"].includes(normalizedValue);
+}
+
+// src/utils/debug.ts
+import { dirname, join as join2 } from "path";
+
+// src/bootstrap/state.ts
+import { cwd } from "process";
+import { randomUUID } from "crypto";
+
+// src/bootstrap/envValidators.ts
+var bashMaxOutputLengthValidator = {
+  name: "BASH_MAX_OUTPUT_LENGTH",
+  default: 30000,
+  validate: (value) => {
+    const MAX_OUTPUT_LENGTH = 150000;
+    const DEFAULT_MAX_OUTPUT_LENGTH = 30000;
+    if (!value) {
+      return {
+        effective: DEFAULT_MAX_OUTPUT_LENGTH,
+        status: "valid"
+      };
+    }
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      return {
+        effective: DEFAULT_MAX_OUTPUT_LENGTH,
+        status: "invalid",
+        message: `Invalid value "${value}" (using default: ${DEFAULT_MAX_OUTPUT_LENGTH})`
+      };
+    }
+    if (parsed > MAX_OUTPUT_LENGTH) {
+      return {
+        effective: MAX_OUTPUT_LENGTH,
+        status: "capped",
+        message: `Capped from ${parsed} to ${MAX_OUTPUT_LENGTH}`
+      };
+    }
+    return { effective: parsed, status: "valid" };
+  }
+};
+var maxOutputTokensValidator = {
+  name: "CLAUDE_CODE_MAX_OUTPUT_TOKENS",
+  default: 32000,
+  validate: (value) => {
+    if (!value) {
+      return { effective: 32000, status: "valid" };
+    }
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      return {
+        effective: 32000,
+        status: "invalid",
+        message: `Invalid value "${value}" (using default: 32000)`
+      };
+    }
+    if (parsed > 32000) {
+      return {
+        effective: 32000,
+        status: "capped",
+        message: `Capped from ${parsed} to 32000`
+      };
+    }
+    return { effective: parsed, status: "valid" };
+  }
+};
+
+// src/bootstrap/state.ts
+function getInitialState() {
+  return {
+    originalCwd: cwd(),
+    totalCostUSD: 0,
+    totalAPIDuration: 0,
+    totalAPIDurationWithoutRetries: 0,
+    totalToolDuration: 0,
+    startTime: Date.now(),
+    lastInteractionTime: Date.now(),
+    totalLinesAdded: 0,
+    totalLinesRemoved: 0,
+    hasUnknownModelCost: false,
+    cwd: cwd(),
+    modelUsage: {},
+    mainLoopModelOverride: undefined,
+    maxRateLimitFallbackActive: false,
+    initialMainLoopModel: null,
+    modelStrings: null,
+    isNonInteractiveSession: true,
+    isInteractive: false,
+    clientType: "cli",
+    sessionIngressToken: undefined,
+    oauthTokenFromFd: undefined,
+    apiKeyFromFd: undefined,
+    flagSettingsPath: undefined,
+    allowedSettingSources: [
+      "userSettings",
+      "projectSettings",
+      "localSettings",
+      "flagSettings",
+      "policySettings"
+    ],
+    meter: null,
+    sessionCounter: null,
+    locCounter: null,
+    prCounter: null,
+    commitCounter: null,
+    costCounter: null,
+    tokenCounter: null,
+    codeEditToolDecisionCounter: null,
+    activeTimeCounter: null,
+    sessionId: randomUUID(),
+    loggerProvider: null,
+    eventLogger: null,
+    meterProvider: null,
+    agentColorMap: new Map,
+    agentColorIndex: 0,
+    envVarValidators: [bashMaxOutputLengthValidator, maxOutputTokensValidator],
+    lastAPIRequest: null,
+    inMemoryErrorLog: []
+  };
+}
+var STATE = getInitialState();
+function getSessionId() {
+  return STATE.sessionId;
+}
+
+// src/utils/debug.ts
+var isDebugMode = memoize_default(() => {
+  return isEnvTruthy(process.env.DEBUG) || isEnvTruthy(process.env.DEBUG_SDK) || process.argv.includes("--debug") || process.argv.includes("-d") || isDebugToStdErr() || process.argv.some((arg) => arg.startsWith("--debug="));
+});
+var getDebugFilter = memoize_default(() => {
+  const debugArg = process.argv.find((arg) => arg.startsWith("--debug="));
+  if (!debugArg) {
+    return null;
+  }
+  const filterPattern = debugArg.substring("--debug=".length);
+  return parseDebugFilter(filterPattern);
+});
+var isDebugToStdErr = memoize_default(() => {
+  return process.argv.includes("--debug-to-stderr") || process.argv.includes("-d2e");
+});
+function shouldLogDebugMessage(message) {
+  const filter = getDebugFilter();
+  return shouldShowDebugMessage(message, filter);
+}
+var hasFormattedOutput = false;
+function logForDebugging(message, { level } = {
+  level: "debug"
+}) {
+  if (!shouldLogDebugMessage(message)) {
+    return;
+  }
+  if (hasFormattedOutput && message.includes(`
+`)) {
+    message = JSON.stringify(message);
+  }
+  const output = `[${level.toUpperCase()}] ${message.trim()}
+`;
+  if (isDebugToStdErr()) {
+    writeToStderr(output);
+    return;
+  }
+  if (!getFsImplementation().existsSync(dirname(getDebugLogPath()))) {
+    getFsImplementation().mkdirSync(dirname(getDebugLogPath()));
+  }
+  getFsImplementation().appendFileSync(getDebugLogPath(), output);
+  updateLatestDebugLogSymlink();
+}
+function getDebugLogPath() {
+  return process.env.CLAUDE_CODE_DEBUG_LOGS_DIR ?? join2(getClaudeConfigHomeDir(), "debug", `${getSessionId()}.txt`);
+}
+var updateLatestDebugLogSymlink = memoize_default(() => {
+  try {
+    const debugLogPath = getDebugLogPath();
+    const debugLogsDir = dirname(debugLogPath);
+    const latestSymlinkPath = join2(debugLogsDir, "latest");
+    if (!getFsImplementation().existsSync(debugLogsDir)) {
+      getFsImplementation().mkdirSync(debugLogsDir);
+    }
+    if (getFsImplementation().existsSync(latestSymlinkPath)) {
+      try {
+        getFsImplementation().unlinkSync(latestSymlinkPath);
+      } catch {}
+    }
+    getFsImplementation().symlinkSync(debugLogPath, latestSymlinkPath);
+  } catch {}
+});
+
 // src/core/Query.ts
 class Query {
   transport;
@@ -7050,24 +7709,34 @@ class Query {
     return (await this.initialization).account;
   }
   async streamInput(stream) {
+    logForDebugging(`[Query.streamInput] Starting to process input stream`);
+    logForDebugging(`[Query.streamInput] this.sdkMcpTransports.size = ${this.sdkMcpTransports.size}`);
     try {
+      let messageCount = 0;
       for await (const message of stream) {
+        messageCount++;
+        logForDebugging(`[Query.streamInput] Processing message ${messageCount}: ${message.type}`);
         if (this.abortController?.signal.aborted)
           break;
         await Promise.resolve(this.transport.write(JSON.stringify(message) + `
 `));
       }
+      logForDebugging(`[Query.streamInput] Finished processing ${messageCount} messages from input stream`);
+      logForDebugging(`[Query.streamInput] About to check MCP servers. this.sdkMcpTransports.size = ${this.sdkMcpTransports.size}`);
       if (this.sdkMcpTransports.size > 0 && this.firstResultReceivedPromise) {
-        const STREAM_CLOSE_TIMEOUT = 60000;
+        logForDebugging(`[Query.streamInput] Entering Promise.race to wait for result`);
+        const STREAM_CLOSE_TIMEOUT = 1e4;
         let timeoutId;
         await Promise.race([
           this.firstResultReceivedPromise.then(() => {
+            logForDebugging(`[Query.streamInput] Received first result, closing input stream`);
             if (timeoutId) {
               clearTimeout(timeoutId);
             }
           }),
           new Promise((resolve) => {
             timeoutId = setTimeout(() => {
+              logForDebugging(`[Query.streamInput] Timed out waiting for first result, closing input stream`);
               resolve();
             }, STREAM_CLOSE_TIMEOUT);
           })
@@ -7076,6 +7745,7 @@ class Query {
           clearTimeout(timeoutId);
         }
       }
+      logForDebugging(`[Query] Calling transport.endInput() to close stdin to CLI process`);
       this.transport.endInput();
     } catch (error) {
       if (!(error instanceof AbortError)) {
@@ -7156,7 +7826,7 @@ function createSharedQuery({
     canUseTool,
     continue: continueConversation,
     customSystemPrompt,
-    cwd,
+    cwd: cwd2,
     disallowedTools = [],
     env,
     executable = isRunningWithBun() ? "bun" : "node",
@@ -7209,7 +7879,7 @@ function createSharedQuery({
     abortController,
     additionalDirectories,
     agents,
-    cwd,
+    cwd: cwd2,
     executable,
     executableArgs,
     extraArgs,
@@ -14144,8 +14814,8 @@ function query({
   let pathToClaudeCodeExecutable = options?.pathToClaudeCodeExecutable;
   if (!pathToClaudeCodeExecutable) {
     const filename = fileURLToPath(import.meta.url);
-    const dirname = join(filename, "..");
-    pathToClaudeCodeExecutable = join(dirname, "cli.js");
+    const dirname2 = join3(filename, "..");
+    pathToClaudeCodeExecutable = join3(dirname2, "cli.js");
   }
   return createSharedQuery({
     prompt,
