@@ -376,7 +376,18 @@ export type SDKCompactBoundaryMessage = SDKMessageBase & {
         pre_tokens: number;
     };
 };
-export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage | SDKPartialAssistantMessage | SDKCompactBoundaryMessage;
+export type SDKHookResponseMessage = SDKMessageBase & {
+    type: 'system';
+    subtype: 'hook_response';
+    hook_name: string;
+    hook_event: string;
+    tool_name?: string;
+    response: SyncHookJSONOutput;
+    stdout: string;
+    stderr: string;
+    exit_code?: number;
+};
+export type SDKMessage = SDKAssistantMessage | SDKUserMessage | SDKUserMessageReplay | SDKResultMessage | SDKSystemMessage | SDKPartialAssistantMessage | SDKCompactBoundaryMessage | SDKHookResponseMessage;
 export interface Query extends AsyncGenerator<SDKMessage, void> {
     /**
      * Control Requests
