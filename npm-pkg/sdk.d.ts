@@ -227,7 +227,9 @@ export type Options = {
     customSystemPrompt?: string;
     cwd?: string;
     disallowedTools?: string[];
-    env?: Dict<string>;
+    env?: {
+        [envVar: string]: string | undefined;
+    };
     executable?: 'bun' | 'deno' | 'node';
     executableArgs?: string[];
     extraArgs?: Record<string, string | null>;
@@ -352,6 +354,7 @@ export type SDKSystemMessage = SDKMessageBase & {
     subtype: 'init';
     agents?: string[];
     apiKeySource: ApiKeySource;
+    claude_code_version: string;
     cwd: string;
     tools: string[];
     mcp_servers: {

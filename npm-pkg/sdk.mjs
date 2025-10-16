@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://docs.claude.com/en/docs/claude-code/legal-and-compliance.
 
-// Version: 2.0.15
+// Version: 2.0.19
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -7374,6 +7374,7 @@ function getInitialState() {
     loggerProvider: null,
     eventLogger: null,
     meterProvider: null,
+    tracerProvider: null,
     agentColorMap: new Map,
     agentColorIndex: 0,
     envVarValidators: [bashMaxOutputLengthValidator, maxOutputTokensValidator],
