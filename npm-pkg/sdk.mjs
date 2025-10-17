@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://docs.claude.com/en/docs/claude-code/legal-and-compliance.
 
-// Version: 2.0.19
+// Version: 2.0.20
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -6471,8 +6471,8 @@ class ProcessTransport {
       }
       const isNative = isNativeBinary(pathToClaudeCodeExecutable);
       const spawnCommand = isNative ? pathToClaudeCodeExecutable : executable;
-      const spawnArgs = isNative ? args : [...executableArgs, pathToClaudeCodeExecutable, ...args];
-      this.logForDebugging(isNative ? `Spawning Claude Code native binary: ${pathToClaudeCodeExecutable} ${args.join(" ")}` : `Spawning Claude Code process: ${executable} ${[...executableArgs, pathToClaudeCodeExecutable, ...args].join(" ")}`);
+      const spawnArgs = isNative ? [...executableArgs, ...args] : [...executableArgs, pathToClaudeCodeExecutable, ...args];
+      this.logForDebugging(isNative ? `Spawning Claude Code native binary: ${spawnCommand} ${spawnArgs.join(" ")}` : `Spawning Claude Code process: ${spawnCommand} ${spawnArgs.join(" ")}`);
       const stderrMode = env.DEBUG || stderr ? "pipe" : "ignore";
       this.child = spawn(spawnCommand, spawnArgs, {
         cwd,
@@ -7423,6 +7423,7 @@ function logForDebugging(message, { level } = {
     writeToStderr(output);
     return;
   }
+  if (false) {}
   if (!getFsImplementation().existsSync(dirname(getDebugLogPath()))) {
     getFsImplementation().mkdirSync(dirname(getDebugLogPath()));
   }
