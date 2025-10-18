@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://docs.claude.com/en/docs/claude-code/legal-and-compliance.
 
-// Version: 2.0.20
+// Version: 2.0.22
 
 // Want to see the unminified source? We're hiring!
 // https://job-boards.greenhouse.io/anthropic/jobs/4816199008
@@ -7403,6 +7403,10 @@ var isDebugToStdErr = memoize_default(() => {
   return process.argv.includes("--debug-to-stderr") || process.argv.includes("-d2e");
 });
 function shouldLogDebugMessage(message) {
+  if (false) {}
+  if (typeof process === "undefined" || typeof process.versions === "undefined" || typeof process.versions.node === "undefined") {
+    return false;
+  }
   const filter = getDebugFilter();
   return shouldShowDebugMessage(message, filter);
 }
@@ -7423,7 +7427,6 @@ function logForDebugging(message, { level } = {
     writeToStderr(output);
     return;
   }
-  if (false) {}
   if (!getFsImplementation().existsSync(dirname(getDebugLogPath()))) {
     getFsImplementation().mkdirSync(dirname(getDebugLogPath()));
   }
@@ -7673,6 +7676,12 @@ class Query {
     await this.request({
       subtype: "set_model",
       model
+    });
+  }
+  async setMaxThinkingTokens(maxThinkingTokens) {
+    await this.request({
+      subtype: "set_max_thinking_tokens",
+      max_thinking_tokens: maxThinkingTokens
     });
   }
   request(request) {

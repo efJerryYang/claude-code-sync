@@ -384,8 +384,6 @@ export type SDKHookResponseMessage = SDKMessageBase & {
     subtype: 'hook_response';
     hook_name: string;
     hook_event: string;
-    tool_name?: string;
-    response: SyncHookJSONOutput;
     stdout: string;
     stderr: string;
     exit_code?: number;
@@ -400,6 +398,16 @@ export interface Query extends AsyncGenerator<SDKMessage, void> {
     interrupt(): Promise<void>;
     setPermissionMode(mode: PermissionMode): Promise<void>;
     setModel(model?: string): Promise<void>;
+    /**
+     * Set the maximum number of thinking tokens the model is allowed to use
+     * when generating its response. This can be used to limit the amount of
+     * tokens the model uses for its response, which can help control cost and
+     * latency.
+     *
+     * Use `null` to clear any previously set limit and allow the model to
+     * use the default maximum thinking tokens.
+     */
+    setMaxThinkingTokens(maxThinkingTokens: number | null): Promise<void>;
     supportedCommands(): Promise<SlashCommand[]>;
     supportedModels(): Promise<ModelInfo[]>;
     mcpServerStatus(): Promise<McpServerStatus[]>;
