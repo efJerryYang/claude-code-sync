@@ -38,6 +38,6 @@ See our [data usage policies](https://docs.claude.com/en/docs/claude-code/data-u
 
 ### Privacy safeguards
 
-We have implemented several safeguards to protect your data, including limited retention periods for sensitive information, restricted access to user session data, and clear policies against using feedback for model training.
+We have implemented several safeguards to protect your data, including limited retention periods for sensitive information and restricted access to user session data.
 
 For full details, please review our [Commercial Terms of Service](https://www.anthropic.com/legal/commercial-terms) and [Privacy Policy](https://www.anthropic.com/legal/privacy).

@@ -365,6 +365,7 @@ export type SDKSystemMessage = SDKMessageBase & {
     permissionMode: PermissionMode;
     slash_commands: string[];
     output_style: string;
+    skills: string[];
 };
 export type SDKPartialAssistantMessage = SDKMessageBase & {
     type: 'stream_event';
