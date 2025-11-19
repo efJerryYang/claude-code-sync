@@ -27,7 +27,7 @@ export type ToolInputSchemas =
   | TodoWriteInput
   | WebFetchInput
   | WebSearchInput
-  | MultipleChoiceQuestionInput;
+  | AskUserQuestionInput;
 
 export interface AgentInput {
   /**
@@ -301,7 +301,7 @@ export interface WebSearchInput {
    */
   blocked_domains?: string[];
 }
-export interface MultipleChoiceQuestionInput {
+export interface AskUserQuestionInput {
   /**
    * Questions to ask the user (1-4 questions)
    *
