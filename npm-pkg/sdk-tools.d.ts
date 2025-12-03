@@ -94,10 +94,7 @@ export interface BashOutputInput {
   filter?: string;
 }
 export interface ExitPlanModeInput {
-  /**
-   * The plan you came up with, that you want to run by the user for approval. Supports markdown. The plan should be pretty concise.
-   */
-  plan: string;
+  [k: string]: unknown;
 }
 export interface FileEditInput {
   /**
