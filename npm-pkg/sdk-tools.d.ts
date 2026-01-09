@@ -54,6 +54,10 @@ export interface AgentInput {
    * Set to true to run this agent in the background. The tool result will include an output_file path - use Read tool or Bash tail to check on output.
    */
   run_in_background?: boolean;
+  /**
+   * Maximum number of agentic turns (API round-trips) before stopping. Used internally for warmup.
+   */
+  max_turns?: number;
 }
 export interface BashInput {
   /**
