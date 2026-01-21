@@ -138,6 +138,10 @@ export interface ExitPlanModeInput {
    * The remote session URL if pushed to remote
    */
   remoteSessionUrl?: string;
+  /**
+   * The remote session title if pushed to remote
+   */
+  remoteSessionTitle?: string;
   [k: string]: unknown;
 }
 export interface FileEditInput {
