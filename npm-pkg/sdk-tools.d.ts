@@ -59,10 +59,6 @@ export interface AgentInput {
    */
   max_turns?: number;
   /**
-   * Tools to grant this agent. User will be prompted to approve if not already allowed. Example: ["Bash(git commit*)", "Read"]
-   */
-  allowed_tools?: string[];
-  /**
    * Name for the spawned agent
    */
   name?: string;
