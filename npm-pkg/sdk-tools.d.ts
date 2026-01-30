@@ -154,14 +154,6 @@ export interface ExitPlanModeInput {
    * The remote session title if pushed to remote
    */
   remoteSessionTitle?: string;
-  /**
-   * Whether to launch a swarm to implement the plan
-   */
-  launchSwarm?: boolean;
-  /**
-   * Number of teammates to spawn in the swarm
-   */
-  teammateCount?: number;
   [k: string]: unknown;
 }
 export interface FileEditInput {
