@@ -187,6 +187,10 @@ export interface FileReadInput {
    * The number of lines to read. Only provide if the file is too large to read at once.
    */
   limit?: number;
+  /**
+   * Page range for PDF files (e.g., "1-5", "3", "10-20"). Only applicable to PDF files. Maximum 20 pages per request.
+   */
+  pages?: string;
 }
 export interface FileWriteInput {
   /**
