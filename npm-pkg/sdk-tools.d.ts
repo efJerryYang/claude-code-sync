@@ -23,6 +23,10 @@ export type ToolInputSchemas =
   | McpInput
   | NotebookEditInput
   | ReadMcpResourceInput
+  | SubscribeMcpResourceInput
+  | UnsubscribeMcpResourceInput
+  | SubscribePollingInput
+  | UnsubscribePollingInput
   | TodoWriteInput
   | WebFetchInput
   | WebSearchInput
@@ -44,6 +48,10 @@ export type ToolOutputSchemas =
   | McpOutput
   | NotebookEditOutput
   | ReadMcpResourceOutput
+  | SubscribeMcpResourceOutput
+  | UnsubscribeMcpResourceOutput
+  | SubscribePollingOutput
+  | UnsubscribePollingOutput
   | TodoWriteOutput
   | WebFetchOutput
   | WebSearchOutput
@@ -289,6 +297,10 @@ export interface AgentInput {
    * Permission mode for spawned teammate (e.g., "plan" to require plan approval).
    */
   mode?: "acceptEdits" | "bypassPermissions" | "default" | "dontAsk" | "plan";
+  /**
+   * Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.
+   */
+  isolation?: "worktree";
 }
 export interface BashInput {
   /**
@@ -350,22 +362,6 @@ export interface ExitPlanModeInput {
      */
     prompt: string;
   }[];
-  /**
-   * Whether to push the plan to a remote Claude.ai session
-   */
-  pushToRemote?: boolean;
-  /**
-   * The remote session ID if pushed to remote
-   */
-  remoteSessionId?: string;
-  /**
-   * The remote session URL if pushed to remote
-   */
-  remoteSessionUrl?: string;
-  /**
-   * The remote session title if pushed to remote
-   */
-  remoteSessionTitle?: string;
   [k: string]: unknown;
 }
 export interface FileEditInput {
@@ -532,6 +528,80 @@ export interface ReadMcpResourceInput {
    * The resource URI to read
    */
   uri: string;
+}
+export interface SubscribeMcpResourceInput {
+  /**
+   * The MCP server name
+   */
+  server: string;
+  /**
+   * The resource URI to subscribe to
+   */
+  uri: string;
+  /**
+   * Optional reason for subscribing (included in update notifications)
+   */
+  reason?: string;
+}
+export interface UnsubscribeMcpResourceInput {
+  /**
+   * The MCP server name
+   */
+  server?: string;
+  /**
+   * The resource URI to unsubscribe from
+   */
+  uri?: string;
+  /**
+   * The subscription ID to unsubscribe
+   */
+  subscriptionId?: string;
+}
+export interface SubscribePollingInput {
+  /**
+   * The type of subscription: "tool" to poll a tool, "resource" to poll a resource URI
+   */
+  type: "tool" | "resource";
+  /**
+   * The MCP server name
+   */
+  server: string;
+  /**
+   * The tool to call periodically (required when type is "tool")
+   */
+  toolName?: string;
+  /**
+   * Arguments to pass to the tool on each call
+   */
+  arguments?: {
+    [k: string]: unknown;
+  };
+  /**
+   * The resource URI to poll (required when type is "resource")
+   */
+  uri?: string;
+  /**
+   * Polling interval in milliseconds (minimum 1000ms, default 5000ms)
+   */
+  intervalMs: number;
+  /**
+   * Optional reason for subscribing (included in change notifications)
+   */
+  reason?: string;
+}
+export interface UnsubscribePollingInput {
+  /**
+   * The subscription ID to unsubscribe
+   */
+  subscriptionId?: string;
+  /**
+   * The MCP server name
+   */
+  server?: string;
+  /**
+   * The target to unsubscribe (tool name for tool subscriptions, URI for resource subscriptions)
+   */
+  target?: string;
 }
 export interface TodoWriteInput {
   /**
@@ -1850,18 +1920,6 @@ export interface ExitPlanModeOutput {
    */
   filePath?: string;
   /**
-   * Whether the plan was pushed to a remote session
-   */
-  pushToRemote?: boolean;
-  /**
-   * The remote session ID
-   */
-  remoteSessionId?: string;
-  /**
-   * The remote session URL
-   */
-  remoteSessionUrl?: string;
-  /**
    * Whether the Task tool is available in the current context
    */
   hasTaskTool?: boolean;
@@ -2053,6 +2111,38 @@ export interface ReadMcpResourceOutput {
      */
     text?: string;
   }[];
+}
+export interface SubscribeMcpResourceOutput {
+  /**
+   * Whether the subscription was successful
+   */
+  subscribed: boolean;
+  /**
+   * Unique identifier for this subscription
+   */
+  subscriptionId: string;
+}
+export interface UnsubscribeMcpResourceOutput {
+  /**
+   * Whether the unsubscription was successful
+   */
+  unsubscribed: boolean;
+}
+export interface SubscribePollingOutput {
+  /**
+   * Whether the subscription was successful
+   */
+  subscribed: boolean;
+  /**
+   * Unique identifier for this subscription
+   */
+  subscriptionId: string;
+}
+export interface UnsubscribePollingOutput {
+  /**
+   * Whether the unsubscription was successful
+   */
+  unsubscribed: boolean;
 }
 export interface TodoWriteOutput {
   /**
@@ -2272,6 +2362,6 @@ export interface ConfigOutput {
 }
 export interface EnterWorktreeOutput {
   worktreePath: string;
-  worktreeBranch: string;
+  worktreeBranch?: string;
   message: string;
 }
