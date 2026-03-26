@@ -315,7 +315,7 @@ export interface BashInput {
    */
   description?: string;
   /**
-   * Set to true to run this command in the background. Use TaskOutput to read the output later.
+   * Set to true to run this command in the background. Use Read to read the output later.
    */
   run_in_background?: boolean;
   /**
@@ -2215,7 +2215,7 @@ export interface ConfigInput {
 }
 export interface EnterWorktreeInput {
   /**
-   * Optional name for the worktree (letters, digits, dots, underscores, dashes only; max 64 chars). A random name is generated if not provided.
+   * Optional name for the worktree. Each "/"-separated segment may contain only letters, digits, dots, underscores, and dashes; max 64 chars total. A random name is generated if not provided.
    */
   name?: string;
 }
@@ -2286,10 +2286,6 @@ export interface BashOutput {
    * Total size of the output in bytes (set when output is too large for inline)
    */
   persistedOutputSize?: number;
-  /**
-   * Compressed output sent to model when token-saver is active (UI still uses stdout)
-   */
-  tokenSaverOutput?: string;
 }
 export interface ExitPlanModeOutput {
   /**
