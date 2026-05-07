@@ -324,7 +324,7 @@ export interface BashInput {
    */
   description?: string;
   /**
-   * Set to true to run this command in the background. Use Read to read the output later.
+   * Set to true to run this command in the background.
    */
   run_in_background?: boolean;
   /**
@@ -2464,7 +2464,6 @@ export interface TodoWriteOutput {
     status: "pending" | "in_progress" | "completed";
     activeForm: string;
   }[];
-  verificationNudgeNeeded?: boolean;
 }
 export interface WebFetchOutput {
   /**
